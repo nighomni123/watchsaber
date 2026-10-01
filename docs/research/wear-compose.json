@@ -1,0 +1,40 @@
+{
+  "runId": "01M3VR49CSZRDK77WCQSXJSS72",
+  "status": "BLOCKED",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "reason": "Insufficient wallet balance: available $0.000699, this run requires ~$0.0009. Top up the workspace wallet to continue.",
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "controls": [
+    {
+      "controlId": "WALLET_BALANCE",
+      "controlType": "WORKSPACE_WALLET_BALANCE",
+      "requiredAmount": 0.0009,
+      "snapshot": {
+        "type": "WORKSPACE_WALLET_BALANCE",
+        "limitAmount": 0.000699,
+        "availableAmount": 0.000699,
+        "heldAmount": 0,
+        "syncedAt": "2026-09-29T05:42:54.847Z"
+      }
+    }
+  ],
+  "createdAt": "2026-10-01T12:48:17.049Z",
+  "completedAt": "2026-10-01T12:48:17.191Z",
+  "hints": {
+    "top up the wallet": "This run was blocked because the workspace wallet balance is insufficient. Ask the user to top up at https://app.monid.ai/wallet, then run again.",
+    "run again after top-up": "monid run -p context.dev -e /web/scrape/markdown -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # after the wallet is topped up",
+    "see the full block details": "GET /v1/runs/01M3VR49CSZRDK77WCQSXJSS72/controls (authenticated) returns the control snapshots and hold amounts that blocked this run",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page"
+  }
+}

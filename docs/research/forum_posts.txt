@@ -1,0 +1,62 @@
+TITLE: Lightsaber sound synthesis  (posts=7)
+
+========================================================================
+--- post #1 by rebel2234 (2016-12-12T05:54:34.000Z)
+Here is a little project I've been working on trying to mimic the sound of a lightsaber. Have never been real impressed with most sound options for sabers for the fact that they seem to play a sound file and if you swing longer than the sound file it just sounds cheap.
+ [https://www.youtube.com/watch?v=7dpOs_pMsbo](
+ 
+ 
+Parts used:
+-Teensy 3.2
+-Propshield
+-Couple Pots
+Now I am trying to decide which route to go on lighting the blade while having it adjustable to any color.
+ - Single RGB source in Handle
+ - RGB LED strips (extra added bonus of having the length of the blade have different intensities/colors of light)
+WIP
+
+========================================================================
+--- post #2 by racemaniac (2016-12-12T17:42:50.000Z)
+Nice, i've been working on the same using a maple mini board:
+ [https://www.youtube.com/watch?v=uuLPOUw_mIM](
+ 
+ 
+now working on upgrading my hardware a bit :).
+in my case it's wav files getting mixed together, in your case i assume your actually generating the sound?
+
+========================================================================
+--- post #3 by rebel2234 (2016-12-13T18:14:28.000Z)
+Yes, generating sound. Going to do some more tweaking see if I can get it to sound a bit better.
+
+========================================================================
+--- post #4 by racemaniac (2016-12-13T19:49:18.000Z)
+rebel2234:
+Yes, generating sound. Going to do some more tweaking see if I can get it to sound a bit better.
+i'd love to hear about how you create the sounds 
+I'm not sure if it was on this forum, but someone else was also looking into it, and had posted some details about how he synthesized the lightsaber sound :).
+For now i'm sticking with wav files, it gives you the freedom to take a sample from a saber from a movie/game, and use it for your saber (although you still have to edit it ofcourse).
+Or do you have a way of imitating sound samples with your generator? :).
+And i'm also wondering which algorithms you use for your motion. For now my saber mostly reacts to rotation, and very little to movement since absolute movement data is hard to come by, but haven't spent much time on it yet :).
+
+========================================================================
+--- post #5 by rebel2234 (2016-12-13T20:30:09.000Z)
+racemaniac:
+i'd love to hear about how you create the sounds 
+I'm not sure if it was on this forum, but someone else was also looking into it, and had posted some details about how he synthesized the lightsaber sound :).
+For now i'm sticking with wav files, it gives you the freedom to take a sample from a saber from a movie/game, and use it for your saber (although you still have to edit it ofcourse).
+Or do you have a way of imitating sound samples with your generator? :).
+And i'm also wondering which algorithms you use for your motion. For now my saber mostly reacts to rotation, and very little to movement since absolute movement data is hard to come by, but haven't spent much time on it yet :).
+Alot of what I came up with was inspiration from this [https://www.youtube.com/watch?v=Q_6VITJT0-w](video. And then using PJRC's [http://www.pjrc.com/teensy/gui/](Audio System Design Tool to closely match the base sounds as possible then trying to mix them based on IMU movements and get a doppler effect.
+Using PJRC's IMU library [http://www.pjrc.com/store/prop_shield.html](NXPMotionSense and MadgwickAHRS from Github in various places.
+Haven't tried to come up with a way to sample a wav to get the base sounds out of it and try to imitate but may work on that and see what I come up with.
+
+========================================================================
+--- post #6 by JakeSoft (2016-12-13T23:40:29.000Z)
+Really interesting. I wonder if there is the potential to create a hybrid approach that generates dynamic swing sounds on top of a pre-recored hum. Or maybe add Doppler shift dynamically to pre-recored sounds.
+
+========================================================================
+--- post #7 by Mazza99 (2016-12-14T10:55:46.000Z)
+Amazing project. Saves having to make the sounds yourself
+
+========================================================================
+--- post #8 by system (2021-05-06T12:35:42.315Z)

@@ -1,0 +1,200 @@
+{
+  "runId": "01M3VR00YVHFJP1N5DWRWXC0R4",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "status": "COMPLETED",
+  "output": {
+    "success": true,
+    "markdown": "Effective in 2026, to align with our trunk stable development model and ensure platform stability for the ecosystem, we will publish source code to AOSP in Q2 and Q4. For building and contributing to AOSP, use `android-latest-release`. The `android-latest-release` manifest branch will always reference the most recent release pushed to AOSP. For more information, see Changes to AOSP.\n\n# Audio latency for app developers Stay organized with collections Save and categorize content based on your preferences.\n\n- On this page\n- Oboe\n- Implementation checklist\n - android-ndk\n - Report bugs on Oboe\n - Videos\n\nFor the lowest possible audio latency, we recommend you use Oboe.\n\n## Oboe\n\nOboe uses native audio and is built on AAudio for Android 8.1 (API level 27) and higher and OpenSL ES. To achieve the lowest possible latency for a device, set `setPerformanceMode(oboe::PerformanceMode::LowLatency)` and `setSharingMode(oboe::SharingMode::Exclusive)`. For more information about Oboe, see the Getting started guide, `README.md`, and Full guide. See the Soundboard app for a sample app using Oboe.\n\nIf you use `AudioTrack` to create output audio streams in Java for latency-sensitive apps, use the `PERFORMANCE_MODE_LOW_LATENCY` mode.\n\n## Implementation checklist\n\nTo use Android native audio:\n\n1. Download and install the Android NDK.\n2. Follow the Getting started guide for Oboe.\n3. Call `setPerformanceMode(oboe::PerformanceMode::LowLatency)` and `setSharingMode(oboe::SharingMode::Exclusive)` on the Oboe builder.\n4. Use the recommended native buffer size and sample rate returned by `android.media.AudioManager.getProperty(java.lang.String)`.\n\n5. Keep your callback handlers short, without bursty CPU usage or unbounded blocking. Avoid priority inversion.\n\n6. Consider using non-blocking algorithms to communicate between input and output callback handlers, and between the callback handlers and the rest of your application.\n\n### android-ndk\n\nIf you have questions about how to use Android native audio, join the discussion group android-ndk.\n\n### Report bugs on Oboe\n\nIf you have issues using Oboe, file a bug.\n\n### Videos\n\n- Getting started with Oboe\n- Low Latency Audio - Because Your Ears Are Worth It (Android Dev Summit 2018)\n- Winning on Android - How to optimize an Android audio app (Android Developer Challenge 2018)\n- High Performance Audio on Android (Google I/O 2013)\n- Building great multimedia experiences on Android (Google I/O 2014)\n- Audio latency: buffer sizes (100 Days of Google Dev)\n\nWas this helpful?\n\nContent and code samples on this page are subject to the licenses described in the Content License. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.\n\nLast updated 2026-07-31 UTC.",
+    "contentLength": 2749,
+    "url": "https://source.android.com/docs/core/audio/latency/app",
+    "metadata": {
+      "sourceUrl": "https://source.android.com/docs/core/audio/latency/app",
+      "finalUrl": "https://source.android.com/docs/core/audio/latency/app",
+      "title": "Audio latency for app developers | Android Open Source Project",
+      "language": "en",
+      "canonicalUrl": "https://source.android.com/docs/core/audio/latency/app",
+      "siteName": "Android Open Source Project",
+      "favicon": "https://www.gstatic.com/devrel-devsite/prod/vfdb441d2e08dbd9d3e48d8cd72b242388a87bcf7626bf5fb9df50c2bdd4a70fd/androidsource/images/favicon.svg",
+      "openGraph": {
+        "siteName": "Android Open Source Project",
+        "type": "website",
+        "title": "Audio latency for app developers | Android Open Source Project",
+        "url": "https://source.android.com/docs/core/audio/latency/app",
+        "locale": "en"
+      },
+      "alternates": [
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app",
+          "hreflang": "en"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app",
+          "hreflang": "x-default"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=ar",
+          "hreflang": "ar"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=bn",
+          "hreflang": "bn"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=zh-cn",
+          "hreflang": "zh-Hans"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=zh-tw",
+          "hreflang": "zh-Hant"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=fa",
+          "hreflang": "fa"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=fr",
+          "hreflang": "fr"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=de",
+          "hreflang": "de"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=he",
+          "hreflang": "he"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=hi",
+          "hreflang": "hi"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=id",
+          "hreflang": "id"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=it",
+          "hreflang": "it"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=ja",
+          "hreflang": "ja"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=ko",
+          "hreflang": "ko"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=pl",
+          "hreflang": "pl"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=pt-br",
+          "hreflang": "pt-BR"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=ru",
+          "hreflang": "ru"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=es-419",
+          "hreflang": "es-419"
+        },
+        {
+          "href": "https://source.android.com/docs/core/audio/latency/app?hl=th",
+          "hreflang": "th"
+        }
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Audio latency for app developers Stay organized with collections Save and categorize content based on your preferences."
+        },
+        {
+          "level": 2,
+          "text": "Oboe"
+        },
+        {
+          "level": 2,
+          "text": "Implementation checklist"
+        },
+        {
+          "level": 3,
+          "text": "android-ndk"
+        },
+        {
+          "level": 3,
+          "text": "Report bugs on Oboe"
+        },
+        {
+          "level": 3,
+          "text": "Videos"
+        },
+        {
+          "level": 3,
+          "text": "Build"
+        },
+        {
+          "level": 3,
+          "text": "Connect"
+        },
+        {
+          "level": 3,
+          "text": "Get help"
+        }
+      ],
+      "additionalMeta": {
+        "google-signin-client-id": "721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com",
+        "google-signin-scope": "profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award https://www.googleapis.com/auth/devprofiles.full_control.firstparty",
+        "theme-color": "#34a853",
+        "charset": "utf-8",
+        "x-ua-compatible": "IE=Edge",
+        "viewport": "width=device-width, initial-scale=1"
+      },
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Audio latency for app developers"
+        }
+      ]
+    },
+    "cache_metadata": {
+      "status": "miss",
+      "age_ms": 0
+    },
+    "finalDOMState": "loaded",
+    "request_id": "78e5bb30-bc31-4e8a-ac51-b6a738cf553c"
+  },
+  "providerResponse": {
+    "httpStatus": 200
+  },
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "billing": {
+    "reportedCost": {
+      "currency": "USD",
+      "value": 900,
+      "unit": "MICRO_DOLLAR"
+    }
+  },
+  "resultCount": 1,
+  "billedUnits": 1,
+  "createdAt": "2026-10-01T12:45:57.349Z",
+  "completedAt": "2026-10-01T12:46:02.584Z",
+  "hints": {
+    "retrieve the response later": "monid runs get -r 01M3VR00YVHFJP1N5DWRWXC0R4",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page",
+    "top up the wallet soon": "The workspace wallet balance is low ($0.01). Ask the user to top up at https://app.monid.ai/wallet — runs are BLOCKED once the balance reaches $0.00.",
+    "fund the wallet": "Top up at https://app.monid.ai/wallet (or POST http://api.monid.ai/v1/wallet/topup/sessions with your API key)"
+  }
+}

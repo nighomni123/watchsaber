@@ -1,0 +1,312 @@
+{
+  "runId": "01M3VR1C2Y7ZSBDQBY9W20KXDF",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "status": "COMPLETED",
+  "output": {
+    "success": true,
+    "markdown": "# Sensors Overview Stay organized with collections Save and categorize content based on your preferences.\n\n- On this page\n- Introduction to Sensors\n - Sensor Framework\n - Sensor Availability\n- Identifying Sensors and Sensor Capabilities\n- Monitoring Sensor Events\n- Handling Different Sensor Configurations\n- Sensor Coordinate System\n- Sensor Rate-Limiting\n- Best Practices for Accessing and Using Sensors\n\nMost Android-powered devices have built-in sensors that measure motion, orientation, and various environmental conditions. These sensors are capable of providing raw data with high precision and accuracy, and are useful if you want to monitor three-dimensional device movement or positioning, or you want to monitor changes in the ambient environment near a device. For example, a game might track readings from a device's gravity sensor to infer complex user gestures and motions, such as tilt, shake, rotation, or swing. Likewise, a weather application might use a device's temperature sensor and humidity sensor to calculate and report the dewpoint, or a travel application might use the geomagnetic field sensor and accelerometer to report a compass bearing.\n\nRefer to the following related resources:\n\n- Sensors\n- Motion Sensors\n- Position Sensors\n- Environment Sensors\n- API Demos (OS - RotationVectorDemo)\n\nThe Android platform supports three broad categories of sensors:\n\n- Motion sensors\n\n These sensors measure acceleration forces and rotational forces along three axes. This category includes accelerometers, gravity sensors, gyroscopes, and rotational vector sensors.\n\n- Environmental sensors\n\n These sensors measure various environmental parameters, such as ambient air temperature and pressure, illumination, and humidity. This category includes barometers, photometers, and thermometers.\n\n- Position sensors\n\n These sensors measure the physical position of a device. This category includes orientation sensors and magnetometers.\n\nYou can access sensors available on the device and acquire raw sensor data by using the Android sensor framework. The sensor framework provides several classes and interfaces that help you perform a wide variety of sensor-related tasks. For example, you can use the sensor framework to do the following:\n\n- Determine which sensors are available on a device.\n- Determine an individual sensor's capabilities, such as its maximum range, manufacturer, power requirements, and resolution.\n- Acquire raw sensor data and define the minimum rate at which you acquire sensor data.\n- Register and unregister sensor event listeners that monitor sensor changes.\n\nThis topic provides an overview of the sensors that are available on the Android platform. It also provides an introduction to the sensor framework.\n\n## Introduction to Sensors\n\nThe Android sensor framework lets you access many types of sensors. Some of these sensors are hardware-based and some are software-based. Hardware-based sensors are physical components built into a handset or tablet device. They derive their data by directly measuring specific environmental properties, such as acceleration, geomagnetic field strength, or angular change. Software-based sensors are not physical devices, although they mimic hardware-based sensors. Software-based sensors derive their data from one or more of the hardware-based sensors and are sometimes called virtual sensors or synthetic sensors. The linear acceleration sensor and the gravity sensor are examples of software-based sensors. Table 1 summarizes the sensors that are supported by the Android platform.\n\nFew Android-powered devices have every type of sensor. For example, most handset devices and tablets have an accelerometer and a magnetometer, but fewer devices have barometers or thermometers. Also, a device can have more than one sensor of a given type. For example, a device can have two gravity sensors, each one having a different range.\n\n**Table 1.** Sensor types supported by the Android platform.\n\n| Sensor | Type | Description | Common Uses |\n| --- | --- | --- | --- |\n| `TYPE_ACCELEROMETER` | Hardware | Measures the acceleration force in m/s2 that is applied to a device on all three physical axes (x, y, and z), including the force of gravity. | Motion detection (shake, tilt, etc.). |\n| `TYPE_AMBIENT_TEMPERATURE` | Hardware | Measures the ambient room temperature in degrees Celsius (°C). See note below. | Monitoring air temperatures. |\n| `TYPE_GRAVITY` | Software or Hardware | Measures the force of gravity in m/s2 that is applied to a device on all three physical axes (x, y, z). | Motion detection (shake, tilt, etc.). |\n| `TYPE_GYROSCOPE` | Hardware | Measures a device's rate of rotation in rad/s around each of the three physical axes (x, y, and z). | Rotation detection (spin, turn, etc.). |\n| `TYPE_LIGHT` | Hardware | Measures the ambient light level (illumination) in lx. | Controlling screen brightness. |\n| `TYPE_LINEAR_ACCELERATION` | Software or Hardware | Measures the acceleration force in m/s2 that is applied to a device on all three physical axes (x, y, and z), excluding the force of gravity. | Monitoring acceleration along a single axis. |\n| `TYPE_MAGNETIC_FIELD` | Hardware | Measures the ambient geomagnetic field for all three physical axes (x, y, z) in μT. | Creating a compass. |\n| `TYPE_ORIENTATION` | Software | Measures degrees of rotation that a device makes around all three physical axes (x, y, z). As of API level 3 you can obtain the inclination matrix and rotation matrix for a device by using the gravity sensor and the geomagnetic field sensor in conjunction with the `getRotationMatrix()` method. | Determining device position. |\n| `TYPE_PRESSURE` | Hardware | Measures the ambient air pressure in hPa or mbar. | Monitoring air pressure changes. |\n| `TYPE_PROXIMITY` | Hardware | Measures the proximity of an object in cm relative to the view screen of a device. This sensor is typically used to determine whether a handset is being held up to a person's ear. | Phone position during a call. |\n| `TYPE_RELATIVE_HUMIDITY` | Hardware | Measures the relative ambient humidity in percent (%). | Monitoring dewpoint, absolute, and relative humidity. |\n| `TYPE_ROTATION_VECTOR` | Software or Hardware | Measures the orientation of a device by providing the three elements of the device's rotation vector. | Motion detection and rotation detection. |\n| `TYPE_TEMPERATURE` | Hardware | Measures the temperature of the device in degrees Celsius (°C). This sensor implementation varies across devices and this sensor was replaced with the `TYPE_AMBIENT_TEMPERATURE` sensor in API Level 14 | Monitoring temperatures. |\n\n### Sensor Framework\n\nYou can access these sensors and acquire raw sensor data by using the Android sensor framework. The sensor framework is part of the `android.hardware` package and includes the following classes and interfaces:\n\n`SensorManager`\n\nYou can use this class to create an instance of the sensor service. This class provides various methods for accessing and listing sensors, registering and unregistering sensor event listeners, and acquiring orientation information. This class also provides several sensor constants that are used to report sensor accuracy, set data acquisition rates, and calibrate sensors.\n\n`Sensor`\n\nYou can use this class to create an instance of a specific sensor. This class provides various methods that let you determine a sensor's capabilities.\n\n`SensorEvent`\n\nThe system uses this class to create a sensor event object, which provides information about a sensor event. A sensor event object includes the following information: the raw sensor data, the type of sensor that generated the event, the accuracy of the data, and the timestamp for the event.\n\n`SensorEventListener`\n\nYou can use this interface to create two callback methods that receive notifications (sensor events) when sensor values change or when sensor accuracy changes.\n\nIn a typical application you use these sensor-related APIs to perform two basic tasks:\n\n- **Identifying sensors and sensor capabilities**\n\n Identifying sensors and sensor capabilities at runtime is useful if your application has features that rely on specific sensor types or capabilities. For example, you may want to identify all of the sensors that are present on a device and disable any application features that rely on sensors that are not present. Likewise, you may want to identify all of the sensors of a given type so you can choose the sensor implementation that has the optimum performance for your application.\n\n- **Monitor sensor events**\n\n Monitoring sensor events is how you acquire raw sensor data. A sensor event occurs every time a sensor detects a change in the parameters it is measuring. A sensor event provides you with four pieces of information: the name of the sensor that triggered the event, the timestamp for the event, the accuracy of the event, and the raw sensor data that triggered the event.\n\n### Sensor Availability\n\nWhile sensor availability varies from device to device, it can also vary between Android versions. This is because the Android sensors have been introduced over the course of several platform releases. For example, many sensors were introduced in Android 1.5 (API Level 3), but some were not implemented and were not available for use until Android 2.3 (API Level 9). Likewise, several sensors were introduced in Android 2.3 (API Level 9) and Android 4.0 (API Level 14). Two sensors have been deprecated and replaced by newer, better sensors.\n\nTable 2 summarizes the availability of each sensor on a platform-by-platform basis. Only four platforms are listed because those are the platforms that involved sensor changes. Sensors that are listed as deprecated are still available on subsequent platforms (provided the sensor is present on a device), which is in line with Android's forward compatibility policy.\n\n**Table 2.** Sensor availability by platform.\n\n| Sensor | Android 4.0<br>(API Level 14) | Android 2.3<br>(API Level 9) | Android 2.2<br>(API Level 8) | Android 1.5<br>(API Level 3) |\n| --- | --- | --- | --- | --- |\n| `TYPE_ACCELEROMETER` | **Yes** | **Yes** | **Yes** | **Yes** |\n| `TYPE_AMBIENT_TEMPERATURE` | **Yes** | n/a | n/a | n/a |\n| `TYPE_GRAVITY` | **Yes** | **Yes** | n/a | n/a |\n| `TYPE_GYROSCOPE` | **Yes** | **Yes** | n/a1 | n/a1 |\n| `TYPE_LIGHT` | **Yes** | **Yes** | **Yes** | **Yes** |\n| `TYPE_LINEAR_ACCELERATION` | **Yes** | **Yes** | n/a | n/a |\n| `TYPE_MAGNETIC_FIELD` | **Yes** | **Yes** | **Yes** | **Yes** |\n| `TYPE_ORIENTATION` | **Yes**2 | **Yes**2 | **Yes**2 | **Yes** |\n| `TYPE_PRESSURE` | **Yes** | **Yes** | n/a1 | n/a1 |\n| `TYPE_PROXIMITY` | **Yes** | **Yes** | **Yes** | **Yes** |\n| `TYPE_RELATIVE_HUMIDITY` | **Yes** | n/a | n/a | n/a |\n| `TYPE_ROTATION_VECTOR` | **Yes** | **Yes** | n/a | n/a |\n| `TYPE_TEMPERATURE` | **Yes**2 | **Yes** | **Yes** | **Yes** |\n\n**1** This sensor type was added in Android 1.5 (API Level 3), but it was not available for use until Android 2.3 (API Level 9).\n\n**2** This sensor is available, but it has been deprecated.\n\n## Identifying Sensors and Sensor Capabilities\n\nThe Android sensor framework provides several methods that make it easy for you to determine at runtime which sensors are on a device. The API also provides methods that let you determine the capabilities of each sensor, such as its maximum range, its resolution, and its power requirements.\n\nTo identify the sensors that are on a device you first need to get a reference to the sensor service. To do this, you create an instance of the `SensorManager` class by calling the `getSystemService()` method and passing in the `SENSOR_SERVICE` argument. For example:\n\nKotlinJava More\n\n```\nprivate lateinit var sensorManager: SensorManager\n...\nsensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\n```\n\n```\nprivate SensorManager sensorManager;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\n```\n\nNext, you can get a listing of every sensor on a device by calling the `getSensorList()` method and using the `TYPE_ALL` constant. For example:\n\nKotlinJava More\n\n```\nval deviceSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)\n```\n\n```\nList<Sensor> deviceSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);\n```\n\nIf you want to list all of the sensors of a given type, you could use another constant instead of `TYPE_ALL` such as `TYPE_GYROSCOPE`, `TYPE_LINEAR_ACCELERATION`, or `TYPE_GRAVITY`.\n\nYou can also determine whether a specific type of sensor exists on a device by using the `getDefaultSensor()` method and passing in the type constant for a specific sensor. If a device has more than one sensor of a given type, one of the sensors must be designated as the default sensor. If a default sensor does not exist for a given type of sensor, the method call returns null, which means the device does not have that type of sensor. For example, the following code checks whether there's a magnetometer on a device:\n\nKotlinJava More\n\n```\nprivate lateinit var sensorManager: SensorManager\n...\nsensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nif (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {\n    // Success! There's a magnetometer.\n} else {\n    // Failure! No magnetometer.\n}\n```\n\n```\nprivate SensorManager sensorManager;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nif (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null){\n    // Success! There's a magnetometer.\n} else {\n    // Failure! No magnetometer.\n}\n```\n\n**Note:** Android does not require device manufacturers to build any particular types of sensors into their Android-powered devices, so devices can have a wide range of sensor configurations.\n\nIn addition to listing the sensors that are on a device, you can use the public methods of the `Sensor` class to determine the capabilities and attributes of individual sensors. This is useful if you want your application to behave differently based on which sensors or sensor capabilities are available on a device. For example, you can use the `getResolution()` and `getMaximumRange()` methods to obtain a sensor's resolution and maximum range of measurement. You can also use the `getPower()` method to obtain a sensor's power requirements.\n\nTwo of the public methods are particularly useful if you want to optimize your application for different manufacturer's sensors or different versions of a sensor. For example, if your application needs to monitor user gestures such as tilt and shake, you could create one set of data filtering rules and optimizations for newer devices that have a specific vendor's gravity sensor, and another set of data filtering rules and optimizations for devices that do not have a gravity sensor and have only an accelerometer. The following code sample shows you how you can use the `getVendor()` and `getVersion()` methods to do this. In this sample, we're looking for a gravity sensor that lists Google LLC as the vendor and has a version number of 3. If that particular sensor is not present on the device, we try to use the accelerometer.\n\nKotlinJava More\n\n```\nprivate lateinit var sensorManager: SensorManager\nprivate var mSensor: Sensor? = null\n\n...\n\nsensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\n\nif (sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null) {\n    val gravSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_GRAVITY)\n    // Use the version 3 gravity sensor.\n    mSensor = gravSensors.firstOrNull { it.vendor.contains(\"Google LLC\") && it.version == 3 }\n}\nif (mSensor == null) {\n    // Use the accelerometer.\n    mSensor = if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {\n        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)\n    } else {\n        // Sorry, there are no accelerometers on your device.\n        // You can't play this game.\n        null\n    }\n}\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor mSensor;\n\n...\n\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nmSensor = null;\n\nif (sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null){\n    List<Sensor> gravSensors = sensorManager.getSensorList(Sensor.TYPE_GRAVITY);\n    for(int i=0; i<gravSensors.size(); i++) {\n        if ((gravSensors.get(i).getVendor().contains(\"Google LLC\")) &&\n           (gravSensors.get(i).getVersion() == 3)){\n            // Use the version 3 gravity sensor.\n            mSensor = gravSensors.get(i);\n        }\n    }\n}\nif (mSensor == null){\n    // Use the accelerometer.\n    if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null){\n        mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);\n    } else{\n        // Sorry, there are no accelerometers on your device.\n        // You can't play this game.\n    }\n}\n```\n\nAnother useful method is the `getMinDelay()` method, which returns the minimum time interval (in microseconds) a sensor can use to sense data. Any sensor that returns a non-zero value for the `getMinDelay()` method is a streaming sensor. Streaming sensors sense data at regular intervals and were introduced in Android 2.3 (API Level 9). If a sensor returns zero when you call the `getMinDelay()` method, it means the sensor is not a streaming sensor because it reports data only when there is a change in the parameters it is sensing.\n\nThe `getMinDelay()` method is useful because it lets you determine the maximum rate at which a sensor can acquire data. If certain features in your application require high data acquisition rates or a streaming sensor, you can use this method to determine whether a sensor meets those requirements and then enable or disable the relevant features in your application accordingly.\n\n**Caution:** A sensor's maximum data acquisition rate is not necessarily the rate at which the sensor framework delivers sensor data to your application. The sensor framework reports data through sensor events, and several factors influence the rate at which your application receives sensor events. For more information, see Monitoring Sensor Events.\n\n## Monitoring Sensor Events\n\nTo monitor raw sensor data you need to implement two callback methods that are exposed through the `SensorEventListener` interface: `onAccuracyChanged()` and `onSensorChanged()`. The Android system calls these methods whenever the following occurs:\n\n- **A sensor's accuracy changes.**\n\n In this case the system invokes the `onAccuracyChanged()` method, providing you with a reference to the `Sensor` object that changed and the new accuracy of the sensor. Accuracy is represented by one of four status constants: `SENSOR_STATUS_ACCURACY_LOW`, `SENSOR_STATUS_ACCURACY_MEDIUM`, `SENSOR_STATUS_ACCURACY_HIGH`, or `SENSOR_STATUS_UNRELIABLE`.\n\n- **A sensor reports a new value.**\n\n In this case the system invokes the `onSensorChanged()` method, providing you with a `SensorEvent` object. A `SensorEvent` object contains information about the new sensor data, including: the accuracy of the data, the sensor that generated the data, the timestamp at which the data was generated, and the new data that the sensor recorded.\n\nThe following code shows how to use the `onSensorChanged()` method to monitor data from the light sensor. This example displays the raw sensor data in a `TextView` that is defined in the main.xml file as `sensor_data`.\n\nKotlinJava More\n\n```\nclass SensorActivity : Activity(), SensorEventListener {\n    private lateinit var sensorManager: SensorManager\n    private var mLight: Sensor? = null\n\n    public override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        setContentView(R.layout.main)\n\n        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\n        mLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)\n    }\n\n    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {\n        // Do something here if sensor accuracy changes.\n    }\n\n    override fun onSensorChanged(event: SensorEvent) {\n        // The light sensor returns a single value.\n        // Many sensors return 3 values, one for each axis.\n        val lux = event.values[0]\n        // Do something with this sensor value.\n    }\n\n    override fun onResume() {\n        super.onResume()\n        mLight?.also { light ->\n            sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL)\n        }\n    }\n\n    override fun onPause() {\n        super.onPause()\n        sensorManager.unregisterListener(this)\n    }\n}\n```\n\n```\npublic class SensorActivity extends Activity implements SensorEventListener {\n    private SensorManager sensorManager;\n    private Sensor mLight;\n\n    @Override\n    public final void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.main);\n\n        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\n        mLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);\n    }\n\n    @Override\n    public final void onAccuracyChanged(Sensor sensor, int accuracy) {\n        // Do something here if sensor accuracy changes.\n    }\n\n    @Override\n    public final void onSensorChanged(SensorEvent event) {\n        // The light sensor returns a single value.\n        // Many sensors return 3 values, one for each axis.\n        float lux = event.values[0];\n        // Do something with this sensor value.\n    }\n\n    @Override\n    protected void onResume() {\n        super.onResume();\n        sensorManager.registerListener(this, mLight, SensorManager.SENSOR_DELAY_NORMAL);\n    }\n\n    @Override\n    protected void onPause() {\n        super.onPause();\n        sensorManager.unregisterListener(this);\n    }\n}\n```\n\nIn this example, the default data delay (`SENSOR_DELAY_NORMAL`) is specified when the `registerListener()` method is invoked. The data delay (or sampling rate) controls the interval at which sensor events are sent to your application via the `onSensorChanged()` callback method. The default data delay is suitable for monitoring typical screen orientation changes and uses a delay of 200,000 microseconds. You can specify other data delays, such as `SENSOR_DELAY_GAME` (20,000 microsecond delay), `SENSOR_DELAY_UI` (60,000 microsecond delay), or `SENSOR_DELAY_FASTEST` (0 microsecond delay). As of Android 3.0 (API Level 11) you can also specify the delay as an absolute value (in microseconds).\n\nThe delay that you specify is only a suggested delay. The Android system and other applications can alter this delay. As a best practice, you should specify the largest delay that you can because the system typically uses a smaller delay than the one you specify (that is, you should choose the slowest sampling rate that still meets the needs of your application). Using a larger delay imposes a lower load on the processor and therefore uses less power.\n\nThere is no public method for determining the rate at which the sensor framework is sending sensor events to your application; however, you can use the timestamps that are associated with each sensor event to calculate the sampling rate over several events. You should not have to change the sampling rate (delay) once you set it. If for some reason you do need to change the delay, you will have to unregister and reregister the sensor listener.\n\nIt's also important to note that this example uses the `onResume()` and `onPause()` callback methods to register and unregister the sensor event listener. As a best practice you should always disable sensors you don't need, especially when your activity is paused. Failing to do so can drain the battery in just a few hours because some sensors have substantial power requirements and can use up battery power quickly. The system will not disable sensors automatically when the screen turns off.\n\n## Handling Different Sensor Configurations\n\nAndroid does not specify a standard sensor configuration for devices, which means device manufacturers can incorporate any sensor configuration that they want into their Android-powered devices. As a result, devices can include a variety of sensors in a wide range of configurations. If your application relies on a specific type of sensor, you have to ensure that the sensor is present on a device so your app can run successfully.\n\nYou have two options for ensuring that a given sensor is present on a device:\n\n- Detect sensors at runtime and enable or disable application features as appropriate.\n- Use Google Play filters to target devices with specific sensor configurations.\n\nEach option is discussed in the following sections.\n\n#### **Detecting sensors at runtime**\n\nIf your application uses a specific type of sensor, but doesn't rely on it, you can use the sensor framework to detect the sensor at runtime and then disable or enable application features as appropriate. For example, a navigation application might use the temperature sensor, pressure sensor, GPS sensor, and geomagnetic field sensor to display the temperature, barometric pressure, location, and compass bearing. If a device doesn't have a pressure sensor, you can use the sensor framework to detect the absence of the pressure sensor at runtime and then disable the portion of your application's UI that displays pressure. For example, the following code checks whether there's a pressure sensor on a device:\n\nKotlinJava More\n\n```\nprivate lateinit var sensorManager: SensorManager\n...\nsensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\n\nif (sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) != null) {\n    // Success! There's a pressure sensor.\n} else {\n    // Failure! No pressure sensor.\n}\n```\n\n```\nprivate SensorManager sensorManager;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nif (sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) != null){\n    // Success! There's a pressure sensor.\n} else {\n    // Failure! No pressure sensor.\n}\n```\n\n#### Using Google Play filters to target specific sensor configurations\n\nIf you are publishing your application on Google Play you can use the `<uses-feature>` element in your manifest file to filter your application from devices that do not have the appropriate sensor configuration for your application. The `<uses-feature>` element has several hardware descriptors that let you filter applications based on the presence of specific sensors. The sensors you can list include: accelerometer, barometer, compass (geomagnetic field), gyroscope, light, and proximity. The following is an example manifest entry that filters apps that do not have an accelerometer:\n\n```\n<uses-feature android:name=\"android.hardware.sensor.accelerometer\"\n              android:required=\"true\" />\n```\n\nIf you add this element and descriptor to your application's manifest, users will see your application on Google Play only if their device has an accelerometer.\n\nYou should set the descriptor to `android:required=\"true\"` only if your application relies entirely on a specific sensor. If your application uses a sensor for some functionality, but still runs without the sensor, you should list the sensor in the `<uses-feature>` element, but set the descriptor to `android:required=\"false\"`. This helps ensure that devices can install your app even if they do not have that particular sensor. This is also a project management best practice that helps you keep track of the features your application uses. Keep in mind, if your application uses a particular sensor, but still runs without the sensor, then you should detect the sensor at runtime and disable or enable application features as appropriate.\n\n## Sensor Coordinate System\n\nIn general, the sensor framework uses a standard 3-axis coordinate system to express data values. For most sensors, the coordinate system is defined relative to the device's screen when the device is held in its default orientation (see figure 1). When a device is held in its default orientation, the X axis is horizontal and points to the right, the Y axis is vertical and points up, and the Z axis points toward the outside of the screen face. In this system, coordinates behind the screen have negative Z values. This coordinate system is used by the following sensors:\n\n**Figure 1.** Coordinate system (relative to a device) that's used by the Sensor API.\n\n- Acceleration sensor\n- Gravity sensor\n- Gyroscope\n- Linear acceleration sensor\n- Geomagnetic field sensor\n\nThe most important point to understand about this coordinate system is that the axes are not swapped when the device's screen orientation changes—that is, the sensor's coordinate system never changes as the device moves. This behavior is the same as the behavior of the OpenGL coordinate system.\n\nAnother point to understand is that your application must not assume that a device's natural (default) orientation is portrait. The natural orientation for many tablet devices is landscape. And the sensor coordinate system is always based on the natural orientation of a device.\n\nFinally, if your application matches sensor data to the on-screen display, you need to use the `getRotation()` method to determine screen rotation, and then use the `remapCoordinateSystem()` method to map sensor coordinates to screen coordinates. You need to do this even if your manifest specifies portrait-only display.\n\n**Note:** Some sensors and methods use a coordinate system that is relative to the world's frame of reference (as opposed to the device's frame of reference). These sensors and methods return data that represent device motion or device position relative to the earth. For more information, see the `getOrientation()` method, the `getRotationMatrix()` method, Orientation Sensor, and Rotation Vector Sensor.\n\n## Sensor Rate-Limiting\n\nTo protect potentially sensitive information about users, if your app targets Android 12 (API level 31) or higher, the system places a limit on the refresh rate of data from certain motion sensors and position sensors. This data includes values recorded by the device's accelerometer, gyroscope, and geomagnetic field sensor.\n\nThe refresh rate limit depends on how you access sensor data:\n\n- If you call the `registerListener()` method to monitor sensor events, the sensor sampling rate is limited to 200 Hz. This is true for all overloaded variants of the `registerListener()` method.\n- If you use the `SensorDirectChannel` class, the sensor sampling rate is limited to `RATE_NORMAL`, which is usually about 50 Hz.\n\nIf your app needs to gather motion sensor data at a higher rate, you must declare the `HIGH_SAMPLING_RATE_SENSORS` permission, as shown in the following code snippet. Otherwise, if your app tries to gather motion sensor data at a higher rate without declaring this permission, a `SecurityException` occurs.\n\nAndroidManifest.xml\n\n```\n<manifest ...>\n    <uses-permission android:name=\"android.permission.HIGH_SAMPLING_RATE_SENSORS\"/>\n    <application ...>\n        ...\n    </application>\n</manifest>\n```\n\n## Best Practices for Accessing and Using Sensors\n\nAs you design your sensor implementation, be sure to follow the guidelines that are discussed in this section. These guidelines are recommended best practices for anyone who is using the sensor framework to access sensors and acquire sensor data.\n\n#### Only gather sensor data in the foreground\n\nOn devices running Android 9 (API level 28) or higher, apps running in the background have the following restrictions:\n\n- Sensors that use the continuous reporting mode, such as accelerometers and gyroscopes, don't receive events.\n- Sensors that use the on-change or one-shot reporting modes don't receive events.\n\nGiven these restrictions, it's best to detect sensor events either when your app is in the foreground or as part of a foreground service.\n\n#### Unregister sensor listeners\n\nBe sure to unregister a sensor's listener when you are done using the sensor or when the sensor activity pauses. If a sensor listener is registered and its activity is paused, the sensor will continue to acquire data and use battery resources unless you unregister the sensor. The following code shows how to use the `onPause()` method to unregister a listener:\n\nKotlinJava More\n\n```\nprivate lateinit var sensorManager: SensorManager\n...\noverride fun onPause() {\n    super.onPause()\n    sensorManager.unregisterListener(this)\n}\n```\n\n```\nprivate SensorManager sensorManager;\n...\n@Override\nprotected void onPause() {\n    super.onPause();\n    sensorManager.unregisterListener(this);\n}\n```\n\nFor more information, see `unregisterListener(SensorEventListener)`.\n\n#### Test with the Android Emulator\n\nThe Android Emulator includes a set of virtual sensor controls that allow you to test sensors such as accelerometer, ambient temperature, magnetometer, proximity, light, and more.\n\nThe emulator uses a connection with an Android device that is running the SdkControllerSensor app. Note that this app is available only on devices running Android 4.0 (API level 14) or higher. (If the device is running Android 4.0, it must have Revision 2 installed.) The _SdkControllerSensor_ app monitors changes in the sensors on the device and transmits them to the emulator. The emulator is then transformed based on the new values that it receives from the sensors on your device.\n\nYou can view the source code for the _SdkControllerSensor_ app in the following location:\n\n```\n$ your-android-sdk-directory/tools/apps/SdkController\n```\n\nTo transfer data between your device and the emulator, follow these steps:\n\n1. Check that USB debugging is enabled on your device.\n2. Connect your device to your development machine using a USB cable.\n3. Start the _SdkControllerSensor_ app on your device.\n4. In the app, select the sensors that you want to emulate.\n5. Run the following `adb` command:\n\n```\n$ adb forward tcp:1968 tcp:1968\n```\n8. Start the emulator. You should now be able to apply transformations to the emulator by moving your device.\n\n**Note:** If the movements that you make to your physical device aren't transforming the emulator, try running the `adb` command from step 5 again.\n\nFor more information, see the Android Emulator guide.\n\n#### Don't block the onSensorChanged() method\n\nSensor data can change at a high rate, which means the system may call the `onSensorChanged(SensorEvent)` method quite often. As a best practice, you should do as little as possible within the `onSensorChanged(SensorEvent)` method so you don't block it. If your application requires you to do any data filtering or reduction of sensor data, you should perform that work outside of the `onSensorChanged(SensorEvent)` method.\n\n#### Avoid using deprecated methods or sensor types\n\nSeveral methods and constants have been deprecated. In particular, the `TYPE_ORIENTATION` sensor type has been deprecated. To get orientation data you should use the `getOrientation()` method instead. Likewise, the `TYPE_TEMPERATURE` sensor type has been deprecated. You should use the `TYPE_AMBIENT_TEMPERATURE` sensor type instead on devices that are running Android 4.0.\n\n#### Verify sensors before you use them\n\nAlways verify that a sensor exists on a device before you attempt to acquire data from it. Don't assume that a sensor exists simply because it's a frequently-used sensor. Device manufacturers are not required to provide any particular sensors in their devices.\n\n#### Choose sensor delays carefully\n\nWhen you register a sensor with the `registerListener()` method, be sure you choose a delivery rate that is suitable for your application or use-case. Sensors can provide data at very high rates. Allowing the system to send extra data that you don't need wastes system resources and uses battery power.\n\nNext\n\nMotion sensors arrow\\_forward\n\nWas this helpful?\n\nContent and code samples on this page are subject to the licenses described in the Content License. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.\n\nLast updated 2026-09-16 UTC.",
+    "contentLength": 36040,
+    "url": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview",
+    "metadata": {
+      "sourceUrl": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview",
+      "finalUrl": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview",
+      "title": "Sensors Overview | Sensors and location | Android Developers",
+      "description": "This document provides an overview of Android&#39;s built-in sensors, the sensor framework for accessing sensor data, various sensor types and their uses, and best practices for handling sensor events and configurations in Android applications.",
+      "language": "en",
+      "keywords": [
+        "Android sensors",
+        "sensor framework",
+        "motion sensors",
+        "environmental sensors",
+        "position sensors",
+        "SensorManager",
+        "SensorEventListener",
+        "Android development",
+        "sensor data"
+      ],
+      "canonicalUrl": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview",
+      "siteName": "Android Developers",
+      "image": "https://developer.android.com/static/images/axis_device.png",
+      "favicon": "https://www.gstatic.com/devrel-devsite/prod/vfdb441d2e08dbd9d3e48d8cd72b242388a87bcf7626bf5fb9df50c2bdd4a70fd/android/images/favicon.svg",
+      "openGraph": {
+        "siteName": "Android Developers",
+        "type": "website",
+        "title": "Sensors Overview | Sensors and location | Android Developers",
+        "description": "This document provides an overview of Android&#39;s built-in sensors, the sensor framework for accessing sensor data, various sensor types and their uses, and best practices for handling sensor events and configurations in Android applications.",
+        "url": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview",
+        "image": "https://developer.android.com/static/images/axis_device.png",
+        "imageWidth": "1200",
+        "imageHeight": "675",
+        "locale": "en"
+      },
+      "twitter": {
+        "card": "summary_large_image"
+      },
+      "alternates": [
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview",
+          "hreflang": "en"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview",
+          "hreflang": "x-default"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=ar",
+          "hreflang": "ar"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=bn",
+          "hreflang": "bn"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=zh-cn",
+          "hreflang": "zh-Hans"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=zh-tw",
+          "hreflang": "zh-Hant"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=fa",
+          "hreflang": "fa"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=fr",
+          "hreflang": "fr"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=de",
+          "hreflang": "de"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=he",
+          "hreflang": "he"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=hi",
+          "hreflang": "hi"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=id",
+          "hreflang": "id"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=it",
+          "hreflang": "it"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=ja",
+          "hreflang": "ja"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=ko",
+          "hreflang": "ko"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=pl",
+          "hreflang": "pl"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=pt-br",
+          "hreflang": "pt-BR"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=ru",
+          "hreflang": "ru"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=es-419",
+          "hreflang": "es-419"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview?hl=th",
+          "hreflang": "th"
+        }
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Sensors Overview Stay organized with collections Save and categorize content based on your preferences."
+        },
+        {
+          "level": 2,
+          "text": "Introduction to Sensors"
+        },
+        {
+          "level": 3,
+          "text": "Sensor Framework"
+        },
+        {
+          "level": 3,
+          "text": "Sensor Availability"
+        },
+        {
+          "level": 2,
+          "text": "Identifying Sensors and Sensor Capabilities"
+        },
+        {
+          "level": 2,
+          "text": "Monitoring Sensor Events"
+        },
+        {
+          "level": 2,
+          "text": "Handling Different Sensor Configurations"
+        },
+        {
+          "level": 4,
+          "text": "Detecting sensors at runtime"
+        },
+        {
+          "level": 4,
+          "text": "Using Google Play filters to target specific sensor configurations"
+        },
+        {
+          "level": 2,
+          "text": "Sensor Coordinate System"
+        },
+        {
+          "level": 2,
+          "text": "Sensor Rate-Limiting"
+        },
+        {
+          "level": 2,
+          "text": "Best Practices for Accessing and Using Sensors"
+        },
+        {
+          "level": 4,
+          "text": "Only gather sensor data in the foreground"
+        },
+        {
+          "level": 4,
+          "text": "Unregister sensor listeners"
+        },
+        {
+          "level": 4,
+          "text": "Test with the Android Emulator"
+        },
+        {
+          "level": 4,
+          "text": "Don't block the onSensorChanged() method"
+        },
+        {
+          "level": 4,
+          "text": "Avoid using deprecated methods or sensor types"
+        },
+        {
+          "level": 4,
+          "text": "Verify sensors before you use them"
+        },
+        {
+          "level": 4,
+          "text": "Choose sensor delays carefully"
+        },
+        {
+          "level": 3,
+          "text": "More Android"
+        },
+        {
+          "level": 3,
+          "text": "Discover"
+        },
+        {
+          "level": 3,
+          "text": "Android Devices"
+        },
+        {
+          "level": 3,
+          "text": "Releases"
+        },
+        {
+          "level": 3,
+          "text": "Documentation and Downloads"
+        },
+        {
+          "level": 3,
+          "text": "Support"
+        }
+      ],
+      "additionalMeta": {
+        "google-signin-client-id": "721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com",
+        "google-signin-scope": "profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award https://www.googleapis.com/auth/devprofiles.full_control.firstparty",
+        "theme-color": "#34a853",
+        "charset": "utf-8",
+        "x-ua-compatible": "IE=Edge",
+        "viewport": "width=device-width, initial-scale=1"
+      },
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Sensors Overview"
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Develop",
+              "item": "https://developer.android.com/develop"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Core areas",
+              "item": "https://developer.android.com/develop/core-areas"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Sensors and location",
+              "item": "https://developer.android.com/develop/sensors-and-location"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Sensors Overview",
+              "item": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview"
+            }
+          ]
+        }
+      ]
+    },
+    "cache_metadata": {
+      "status": "miss",
+      "age_ms": 0
+    },
+    "finalDOMState": "loaded",
+    "request_id": "f82fe925-228f-44fe-b284-c5af848b800a"
+  },
+  "providerResponse": {
+    "httpStatus": 200
+  },
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "billing": {
+    "reportedCost": {
+      "currency": "USD",
+      "value": 900,
+      "unit": "MICRO_DOLLAR"
+    }
+  },
+  "resultCount": 1,
+  "billedUnits": 1,
+  "createdAt": "2026-10-01T12:46:41.492Z",
+  "completedAt": "2026-10-01T12:46:46.058Z",
+  "hints": {
+    "retrieve the response later": "monid runs get -r 01M3VR1C2Y7ZSBDQBY9W20KXDF",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page"
+  }
+}

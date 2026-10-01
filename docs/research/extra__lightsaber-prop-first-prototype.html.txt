@@ -1,0 +1,126 @@
+### Lightsaber prop - first prototype
+
+May 10, 2024
+
+In a recent post on Hackaday, I described my initial plans for a lightsaber prop. The final device should be able to generate the characteristic buzzing noise, play sound effects stored on a flash chip, and respond to motion. In this article, I will explain the technical details of the first prototype.
+
+## Overview
+
+As I described in the Hackaday aticle, my plan was to use an ATtiny85 to generate the audio and write to the DAC and use an Arduino Nano to read from the accelerometer and control the lights. The buzzing sould consists of a loop of 833 one-byte samples that are stored in the program memory of the ATtiny. The sound effects are stored as WAV files on the flash chip. The Nano can then write to the ATtiny to control the amplitude of the buzzing or start playback. Thus, the ATtiny must therefore be able to read the buzz sample from program memory, multiply it by its amplitude, multiply the previous playback sample by its amplitude, mix the buzzing and the playback, write to the DAC, read the next playback sample from the flash chip, and read the next command from the Nano 33333 times per second. The lack of a hardware multiplier or a proper SPI interface makes this especially difficult. However, I was able to work out the following procedure:
+
+1. The next sample in the buzz waveform is read from program memory and the index in the buzz waveform array is incremented. The index is reset to zero when it reaches 833, allowing the buzz to run in a continuous loop.
+2. Writing to the DAC, reading a command, and multiplying the samples by their respective amplitudes are performed more or less simultaneously. Since the multiplications finish after the DAC write is done, the output from the previous cycle is written. After the multiplications are complete, the mixed value is stored for the next cycle.
+3. The next playback sample is read from the flash chip and stored for the next cycle.
+
+These steps are handled in the interrupt handler for the A comparator of `TIMER1`, which is configured to run 33333 times per second. For reliability reasons, this is the only interrupt used. This guarantees that the interrupt runs at precise intervals and is not held up by any other interrupts.
+
+## Limitations of the ATtiny
+
+### No hardware multiplier
+
+Since the ATtiny has no hardware multiplier, the multiplication between the sample and its amplitude must be computed manually. The sample value is signed, so the ATtiny must first store the sign of the sample, take its absolute value, perform the multiplication, and restore the sign of the original sample. The actual (unsigned) multiplication algorithm is shown below:
+
+; The 8-bit sample value is in r23, the amplitude is in r22, and the
+; result will be stored in r28:r29.
+sbrc r22, 0 ; If bit 0 in r22 is set ...
+add r29, r23 ; ... add r23 to the high byte of the output
+ror r29 ; Shift the result value to the right.
+ror r28 ; The carry bit is loaded into the MSB.
+...
+sbrc r22, 7
+add r29, r23
+ror r29
+ror r28
+
+### Limited SPI interface
+
+The ATtiny implements only a Universal Serial Interface (USI), which can be configured to act as an SPI, UART, or I2C device. However, one of the limitations of this device is that the output clock must be toggled in the code. Unlike other chips, like the ATmega328 on the Arduino Nano or the ATmega2560 on the Arduino Mega, it is not possible to have the hardware generate the clock automatically. This takes away from the available CPU cycles for processing data. For example, to transmit `0x03` at the maximum clock rate, one must use the following code:
+
+ldi r22, 0x03 ; Load data into the data register
+out 0x0F, r22
+ldi r22, 0b01000000 ; Clear status flags
+out 0x0E, r22
+ldi r24, 0b00010011 ; Prepare flags
+ldi r25, 0b00010001
+out 0x0D, r25 ; Clock high, sample data
+out 0x0D, r24 ; Clock low, write data
+out 0x0D, r25 ; Clock high, sample data
+out 0x0D, r24 ; ...
+out 0x0D, r25
+out 0x0D, r24
+out 0x0D, r25
+out 0x0D, r24
+out 0x0D, r25
+out 0x0D, r24
+out 0x0D, r25
+out 0x0D, r24
+out 0x0D, r25
+out 0x0D, r24
+out 0x0D, r25
+out 0x0D, r24
+
+## Detailed steps
+
+### Step 1: read buzz sample
+
+This step is fairly straghtforward, as it only involves reading from the ATtiny's program memory. The index of the sample in the sample array counts up from 0 to 832 and rolls over to 0, automatically looping the buzz section into a continuous buzz.
+
+### Step 2: write DAC/read command/multiply
+
+Since writing to the DAC is a write-only operation, and reading a command is a read-only operation, they can be performed simultaneously. Furthermore, since the hardware SPI of the Nano is tied up with the accelerometer, SPI connection to the ATtiny must be implemented in software. This means that the SPI clock speed must be less than the maximum frequency. Conveniently, the multiplication algorithm described above can be broken down into 8 sections (one for each bit), and each section can be broken down into two 2-cycle sub-sections. These multiplication instructions can then be interleaved with the SPI clock signals to reduce the clock speed to one-sixth the ATtiny clock frequency.
+
+### Step 3: read next playback sample
+
+The ATtiny must first read the metadata of the desired audio file from the flash chip. The metadata indicates the length of the file and the number of bytes per sample. Once these metadata have been read, they must be parsed. Finally, the playback is started, where samples are read from the flash and output to the DAC. This step is controlled from the main code by four variables, `addr`, `end_addr`, `bytes_per_sample`, and `flash_mode`.
+
+The first bit of the `flash_mode` variable determines whether this step is run. If it is zero, then this step is skipped entirely and no flash reads are performed. Otherwise, this step has two modes: one for reading flash data into the ATtiny's RAM, and one for playing audio. The mode is selected using the second bit of the `flash_mode` variable. To start playback, the main code must first read from the flash chip in the first mode to read the metadata. Then, the main code parses the metadata and determines the start and end addresses for the sample data. Finally, it uses the second mode to play the audio.
+
+## Sending commands to the ATtiny
+
+As I explained above, it is not possible to use the Nano's SPI hardware to interface with the ATtiny. Instead, the SPI connection must be implemented in software. To send a command to the ATtiny, the Nano must first wait for the CS signal to the DAC goes high, and then low again. After the falling edge of the CS pin, the Nano pulls its output pin high. This indicates to the ATtiny that the Nano will send a command. The Nano then loads the most significant bit of the command to its output pin and awaits the rising edge of the first clock.
+
+However, the system clocks of the ATtiny and the Nano might not be correctly aligned. Thus, the first clock pulse is longer to allow the Nano to synchronize its code to that of the ATtiny. This allows the rest of the command to be transferred without sampling the serial clock output of the ATtiny. Instead, the bit timings are created by inserting `nop` instructions.
+
+In the image below, the upper trace is the serial clock of the ATtiny, and the lower trace is the output from the Nano to the ATtiny. The CS signal is not shown.
+
+## Schematic
+
+The schematic of the first prototype is shown below:
+
+The amplifier circuit consists mainly of two op amps (U2) and four transistors (Q1-Q4). The transistors are in a full-bridge configuration, with Q1 and Q2 driving one side of the speaker, and Q3 and Q4 driving the other side of the speaker. The leftmost op-amp acts as a buffer, but since the inverting input is connected to the output of the transistors, the output of the transistors closely matches the output of the DAC. The rightmost op-amp inverts the signal from the left op-amp and drives Q3 and Q4. By using two opposite signals to drive the speaker, the amplitude of the signal is doubled, making a louder sound.
+
+Resistors R7 and R11-R15 form voltage dividers that convert the 5V signals from the ATtiny into 3.3V signals for the memory chip. The memory chip and these resistors are mounted on the piece of perfboard next to the breadboard.
+
+## Next steps
+
+While the accelerometer is shown connected to the Nano in the image at the top of the page, I have not tested the accelerometer in my current setup yet. I also cannot yet command the ATtiny to begin playback, only change the buzz volume. I will also need to order PCBs to improve the reliability of the connections. I would also like to run the ATtiny at 3.3 volts to simplify the connections with the memory chip.
+
+arduino
+circuits
+lightsaber
+
+### Comments
+
+#### Post a Comment
+
+### Popular posts from this blog
+
+### Power distribution unit for my school's FSAE team
+
+May 09, 2025
+
+Currently, my school's FSAE team uses a Bosch PBX90 to distribute power from the car's low-voltage battery to all low-voltage systems in the car. Its main purpose is to monitor for overcurrents, control the order in which boards are powered when the car is turned on, and control power to certain systems in response to commands it receives over a CAN bus. However, the PBX90 has several limitations that needed to be addressed. First of all, the team plans to use a 24-volt low-voltage battery next year, and the PBX90 only goes up to 20 volts. Additionally, the vertical connectors made packaging more difficult and are generally more difficult to use than the Ampseal connectors we use on the rest of our boards. Finally, the PBX90 costs several thousand dollars, so manufacturing an equivalent board in-house would also save money. Thus, I volunteered to design a power distribution unit (PDU) to replace the Bosch PBX90 in next year's and in future ca...
+
+Read more
+
+March 31, 2024
+
+In a modern washing machine, the moter that spins the drum is controlled by a motor driver, which is separate from the main control board that manages the washing cycle. The main control board sends commands that set the speed of the motor, and the motor driver generates the three-phase power needed for the motor and regulates the speed of the motor. In this article I will explain how I reverse engineered the motor driver (Magnetek 4246-99-1) from a washing machine and then controlled it with an Arduino. Reverse engineering the original setup In the washing machine, the motor driver received mains power through a relay on the main control board. The motor driver was controlled by the main control board via a 5-pin cable. The pinout is shown in the image below: The main control board communicates with the motor driver using an SPI bus. Data is transmitted in bytes with the most-significant-bit first. On the rising edge of the clock signal, the main board updates the signal on the MO...
+
+Read more
+
+April 14, 2024
+
+In a previous article, I explained a type of water level sensor that works capactitively and therefore passes no direct current through the water. When I wrote that article, I had already made two of these sensors and installed one in each of the two sump pump wells in my basement. These sensors have been working quite well for a long time, but they have a few issues. In this article, I will describe the improvements I have made to the sensor design and how I calibrated the sensors to allow me to determine the water flow rate and the volume of water the sump pump pumps each time it comes on. Introduction The two water level sensors I installed in the sump pump wells were equipped with nRF24L01 wireless modules. They transmitted measurements every 30 seconds to a Raspberry Pi, which recorded them to a database. This allowed me to visualize the water level in the sump-pumps in real time and see roughly how often the sump pumps came on. However, the water level followed this interest...
+
+Read more

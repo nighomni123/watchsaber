@@ -1,0 +1,2 @@
+Procedurally synthesised by tools/synth_assets.py in this repository. CC0 / public domain.
+48000 Hz mono, 0.995 s

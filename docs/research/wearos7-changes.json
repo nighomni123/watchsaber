@@ -1,0 +1,243 @@
+{
+  "runId": "01M3VR2SV52T7CBT5HP2CW25HQ",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "status": "COMPLETED",
+  "output": {
+    "success": true,
+    "markdown": "# Test how your app handles behavior changes Stay organized with collections Save and categorize content based on your preferences.\n\n- On this page\n- Background audio hardening\n- Local network access permissions\n\nWear OS 7 is based on Android 17 (API level 37). When you prepare your Wear OS app for use on Wear OS 7, handle the system behavior changes that affect all apps in Android 17, as well as the changes for apps that target Android 17.\n\nUnless otherwise specified, the changes affect all apps that run on Wear OS 7 or higher, regardless of target SDK version.\n\nThe following underlying platform changes warrant particular focus when targeting Wear OS 7:\n\n## Background audio hardening\n\nTo ensure background audio interactions are started intentionally by the user, Android 17 enforces restrictions on audio playback and focus requests. Apps interacting with audio while in the background must run a foreground service that is not of type `SHORT_SERVICE`. For apps targeting Android 17 (API level 37), this foreground service must typically possess **while-in-use (WIU)** capabilities.\n\nFor comprehensive details and mitigation strategies, see the guide on Background audio hardening.\n\n## Local network access permissions\n\nApps targeting Android 17 must declare the `ACCESS_LOCAL_NETWORK` runtime permission to interact with devices on a local area network (LAN). This affects Wear OS apps that communicate directly with smart home devices or casting receivers over Wifi.\n\nFor more information, see the Local network permission documentation.\n\nWas this helpful?\n\nContent and code samples on this page are subject to the licenses described in the Content License. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.\n\nLast updated 2026-05-19 UTC.",
+    "contentLength": 1790,
+    "url": "https://developer.android.com/training/wearables/versions/7/changes",
+    "metadata": {
+      "sourceUrl": "https://developer.android.com/training/wearables/versions/7/changes",
+      "finalUrl": "https://developer.android.com/training/wearables/versions/7/changes",
+      "title": "Test how your app handles behavior changes | Wear OS 7 | Android Developers",
+      "description": "This document outlines the key changes and updates introduced in Wear OS 7, providing guidance for developers on how to adapt their apps for these new behaviors and features.",
+      "language": "en",
+      "keywords": [
+        "Wear OS 7",
+        "behavior changes",
+        "background audio",
+        "memory limits"
+      ],
+      "canonicalUrl": "https://developer.android.com/training/wearables/versions/7/changes",
+      "siteName": "Android Developers",
+      "image": "https://developer.android.com/static/images/social/android-developers.png",
+      "favicon": "https://www.gstatic.com/devrel-devsite/prod/vfdb441d2e08dbd9d3e48d8cd72b242388a87bcf7626bf5fb9df50c2bdd4a70fd/android/images/favicon.svg",
+      "openGraph": {
+        "siteName": "Android Developers",
+        "type": "website",
+        "title": "Test how your app handles behavior changes | Wear OS 7 | Android Developers",
+        "description": "This document outlines the key changes and updates introduced in Wear OS 7, providing guidance for developers on how to adapt their apps for these new behaviors and features.",
+        "url": "https://developer.android.com/training/wearables/versions/7/changes",
+        "image": "https://developer.android.com/static/images/social/android-developers.png",
+        "imageWidth": "1200",
+        "imageHeight": "675",
+        "locale": "en"
+      },
+      "twitter": {
+        "card": "summary_large_image"
+      },
+      "alternates": [
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes",
+          "hreflang": "en"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes",
+          "hreflang": "x-default"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=ar",
+          "hreflang": "ar"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=bn",
+          "hreflang": "bn"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=zh-cn",
+          "hreflang": "zh-Hans"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=zh-tw",
+          "hreflang": "zh-Hant"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=fa",
+          "hreflang": "fa"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=fr",
+          "hreflang": "fr"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=de",
+          "hreflang": "de"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=he",
+          "hreflang": "he"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=hi",
+          "hreflang": "hi"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=id",
+          "hreflang": "id"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=it",
+          "hreflang": "it"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=ja",
+          "hreflang": "ja"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=ko",
+          "hreflang": "ko"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=pl",
+          "hreflang": "pl"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=pt-br",
+          "hreflang": "pt-BR"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=ru",
+          "hreflang": "ru"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=es-419",
+          "hreflang": "es-419"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/versions/7/changes?hl=th",
+          "hreflang": "th"
+        }
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Test how your app handles behavior changes Stay organized with collections Save and categorize content based on your preferences."
+        },
+        {
+          "level": 2,
+          "text": "Background audio hardening"
+        },
+        {
+          "level": 2,
+          "text": "Local network access permissions"
+        },
+        {
+          "level": 3,
+          "text": "More Android"
+        },
+        {
+          "level": 3,
+          "text": "Discover"
+        },
+        {
+          "level": 3,
+          "text": "Android Devices"
+        },
+        {
+          "level": 3,
+          "text": "Releases"
+        },
+        {
+          "level": 3,
+          "text": "Documentation and Downloads"
+        },
+        {
+          "level": 3,
+          "text": "Support"
+        }
+      ],
+      "additionalMeta": {
+        "google-signin-client-id": "721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com",
+        "google-signin-scope": "profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award https://www.googleapis.com/auth/devprofiles.full_control.firstparty",
+        "theme-color": "#34a853",
+        "charset": "utf-8",
+        "x-ua-compatible": "IE=Edge",
+        "viewport": "width=device-width, initial-scale=1"
+      },
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Test how your app handles behavior changes"
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Develop",
+              "item": "https://developer.android.com/develop"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Devices",
+              "item": "https://developer.android.com/develop/devices"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Wear OS 7",
+              "item": "https://developer.android.com/training/wearables/versions/7"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Test how your app handles behavior changes",
+              "item": "https://developer.android.com/training/wearables/versions/7/changes"
+            }
+          ]
+        }
+      ]
+    },
+    "cache_metadata": {
+      "status": "miss",
+      "age_ms": 0
+    },
+    "finalDOMState": "loaded",
+    "request_id": "febcba3d-fda9-4fa5-93e9-70240894a877"
+  },
+  "providerResponse": {
+    "httpStatus": 200
+  },
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "billing": {
+    "reportedCost": {
+      "currency": "USD",
+      "value": 900,
+      "unit": "MICRO_DOLLAR"
+    }
+  },
+  "resultCount": 1,
+  "billedUnits": 1,
+  "createdAt": "2026-10-01T12:47:28.329Z",
+  "completedAt": "2026-10-01T12:47:34.237Z",
+  "hints": {
+    "retrieve the response later": "monid runs get -r 01M3VR2SV52T7CBT5HP2CW25HQ",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page"
+  }
+}

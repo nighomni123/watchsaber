@@ -1,0 +1,301 @@
+{
+  "runId": "01M3VR21TQVGNEBJ9E77ZMCD39",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "status": "COMPLETED",
+  "output": {
+    "success": true,
+    "markdown": "# Foreground service types Stay organized with collections Save and categorize content based on your preferences.\n\n- On this page\n- Camera\n- Connected device\n- Data sync\n- Health\n- Location\n- Media\n- Media processing\n- Media projection\n- Microphone\n- Phone call\n- Remote messaging\n- Short service\n- Special use\n- System exempted\n- Google Play policy enforcement for using foreground service types\n\nBeginning with Android 14 (API level 34), you must declare an appropriate service type for each foreground service. That means you must declare the service type in your app manifest, and also request the appropriate foreground service permission for that type (in addition to requesting the `FOREGROUND_SERVICE` permission). Furthermore, depending on the foreground service type, you might have to request runtime permissions before you launch the service.\n\n### Camera\n\nForeground service type to declare in manifest under `android:foregroundServiceType`\n\n`camera`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_CAMERA`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_CAMERA`\n\nRuntime prerequisites\n\nRequest and be granted the `CAMERA` runtime permission\n\nDescription\n\nContinue to access the camera from the background, such as video chat apps that allow for multitasking.\n\n### Connected device\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`connectedDevice`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_CONNECTED_DEVICE`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE`\n\nRuntime prerequisites\n\nAt least one of the following conditions must be true:\n\n- Declare at least one of the following permissions in your manifest:\n\n - `CHANGE_NETWORK_STATE`\n - `CHANGE_WIFI_STATE`\n - `CHANGE_WIFI_MULTICAST_STATE`\n - `NFC`\n - `TRANSMIT_IR`\n- Request and be granted at least one of the following runtime permissions:\n\n - `BLUETOOTH_CONNECT`\n - `BLUETOOTH_ADVERTISE`\n - `BLUETOOTH_SCAN`\n - `UWB_RANGING`\n- Call `UsbManager.requestPermission()`\n\nDescription\n\nInteractions with external devices that require a Bluetooth, NFC, IR, USB, or network connection.\n\nAlternatives\n\nIf your app needs to do continuous data transfer to an external device, consider using the companion device manager instead. Use the companion device presence API to help your app stay running while the companion device is in range.\n\nIf your app needs to scan for bluetooth devices, consider using the Bluetooth scan API instead.\n\n### Data sync\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`dataSync`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_DATA_SYNC`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_DATA_SYNC`\n\nRuntime prerequisites\n\nNone\n\nDescription\n\nData transfer operations, such as the following:\n\n- Data upload or download\n- Backup-and-restore operations\n- Import or export operations\n- Fetch data\n- Local file processing\n- Transfer data between a device and the cloud over a network\n\nAlternatives\n\nSee Alternatives to data sync foreground services for detailed information.\n\n### Health\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`health`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_HEALTH`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_HEALTH`\n\nRuntime prerequisites\n\nAt least one of the following conditions must be true:\n\n- Declare the `HIGH_SAMPLING_RATE_SENSORS` permission in your manifest.\n\n- Request and be granted at least one of the following runtime permissions:\n\n - `BODY_SENSORS` on API 35 and lower\n - `READ_HEART_RATE`\n - `READ_SKIN_TEMPERATURE`\n - `READ_OXYGEN_SATURATION`\n - `ACTIVITY_RECOGNITION`\n\nDescription\n\nAny long-running use cases to support apps in the fitness category such as exercise trackers.\n\n### Location\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`location`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_LOCATION`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_LOCATION`\n\nRuntime prerequisites\n\nThe user must have enabled location services and the app must be granted at least one of the following runtime permissions:\n\n- `ACCESS_COARSE_LOCATION`\n- `ACCESS_FINE_LOCATION`\n\nDescription\n\nLong-running use cases that require location access, such as navigation and location sharing.\n\nAlternatives\n\nIf your app needs to be triggered when the user reaches specific locations, consider using the geofence API instead.\n\n### Media\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`mediaPlayback`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_MEDIA_PLAYBACK`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK`\n\nRuntime prerequisites\n\nNone\n\nDescription\n\nContinue audio or video playback from the background. Support Digital Video Recording (DVR) functionality on Android TV.\n\nAlternatives\n\nIf you're showing picture-in-picture video, use Picture-in-Picture mode.\n\n### Media processing\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`mediaProcessing`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_MEDIA_PROCESSING`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING`\n\nRuntime prerequisites\n\nNone\n\nDescription\n\nService for performing time-consuming operations on media assets, like converting media to different formats. The system allows this service a limited time to run; under normal circumstances, this time limit would be 6 hours out of every 24. (This limit is shared by all of an app's `mediaProcessing` foreground services.)\n\nYour app should manually stop the media processing service in the following scenario:\n\n- When the transcoding operation finishes or reaches a failure state, have the service call `Service.stopForeground()` and `Service.stopSelf()` to stop the service completely.\n\nIf the timeout period is reached, the system calls the service's `Service.onTimeout(int, int)` method. At this time, the service has a few seconds to call `Service.stopSelf()`. If the service does not call `Service.stopSelf()`, an ANR will occur with this error message: \"A foreground service of _<fgs\\_type>_ did not stop within its timeout: _<component\\_name>_\".\n\n**Note**: `Service.onTimeout(int, int)` is not available on Android 14 or lower. On devices running those versions, if a media processing service reaches the timeout period, the system immediately caches the app. For this reason, your app shouldn't wait to get a timeout notification. Instead, it should terminate the foreground service or change it to a background service as soon as appropriate.\n\n### Media projection\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`mediaProjection`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_MEDIA_PROJECTION`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION`\n\nRuntime prerequisites\n\nCall the `createScreenCaptureIntent()` method before starting the foreground service. Doing so shows a permission notification to the user; the user must grant the permission before you can create the service.\n\nAfter you have created the foreground service, you can call `MediaProjectionManager.getMediaProjection()`.\n\nDescription\n\nProject content to non-primary display or external device using the `MediaProjection` APIs. This content doesn't have to be exclusively media content.\n\nAlternatives\n\nTo stream media to another device, use the Google Cast SDK.\n\n### Microphone\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`microphone`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_MICROPHONE`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_MICROPHONE`\n\nRuntime prerequisites\n\nRequest and be granted the `RECORD_AUDIO` runtime permission.\n\nDescription\n\nContinue microphone capture from the background, such as voice recorders or communication apps.\n\n### Phone call\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`phoneCall`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_PHONE_CALL`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_PHONE_CALL`\n\nRuntime prerequisites\n\nAt least one of these conditions must be true:\n\n- App has declared the `MANAGE_OWN_CALLS` permission in its manifest file.\n\n- App is the default dialer app through the `ROLE_DIALER` role.\n\nDescription\n\nContinue an ongoing call using the `ConnectionService` APIs.\n\nAlternatives\n\nIf you need to make phone, video, or VoIP calls, consider using the `android.telecom` library.\n\nConsider using `CallScreeningService` to screen calls.\n\n### Remote messaging\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`remoteMessaging`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_REMOTE_MESSAGING`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING`\n\nRuntime prerequisites\n\nNone\n\nDescription\n\nTransfer text messages from one device to another. Assists with continuity of a user's messaging tasks when they switch devices.\n\n### Short service\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`shortService`\n\nPermission to declare in your manifest\n\nNone\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_SHORT_SERVICE`\n\nRuntime prerequisites\n\nNone\n\nDescription\n\nQuickly finish critical work that cannot be interrupted or postponed.\n\nThis type has some unique characteristics:\n\n- Can only run for a short period of time (about 3 minutes).\n- No support for sticky foreground services.\n- Cannot start other foreground services.\n- Doesn't require a type-specific permission, though it still requires the `FOREGROUND_SERVICE` permission.\n- A `shortService` can only change to another service type if the app is currently eligible to start a new foreground service.\n- A foreground service can change its type to `shortService` at any time, at which point the timeout period begins.\n\nThe timeout for shortService begins from the moment that `Service.startForeground()` is called. The app is expected to call `Service.stopSelf()` or `Service.stopForeground()` before the timeout occurs. Otherwise, the new `Service.onTimeout()` is called, giving apps a brief opportunity to call `stopSelf()` or `stopForeground()` to stop their service.\n\nA short time after `Service.onTimeout()` is called, the app enters a cached state and is no longer considered to be in the foreground, unless the user is actively interacting with the app. A short time after the app is cached and the service has not stopped, the app receives an ANR. The ANR message mentions `FOREGROUND_SERVICE_TYPE_SHORT_SERVICE`. For these reasons, it's considered best practice to implement the `Service.onTimeout()` callback.\n\nThe `Service.onTimeout()` callback doesn't exist on Android 13 and lower. If the same service runs on such devices, it doesn't receive a timeout, nor does it ANR. Make sure that your service stops as soon as it finishes the processing task, even if it hasn't received the `Service.onTimeout()` callback yet.\n\nIt's important to note that if the timeout of the `shortService` is not respected, the app will ANR even if it has other valid foreground services or other app lifecycle processes running.\n\nIf an app is visible to the user or satisfies one of the exemptions that allow foreground services to be started from the background, calling `Service.StartForeground()` again with the `FOREGROUND_SERVICE_TYPE_SHORT_SERVICE` parameter extends the timeout by another 3 minutes. If the app isn't visible to the user and doesn't satisfy one of the exemptions, any attempt to start another foreground service, regardless of type, causes a `ForegroundServiceStartNotAllowedException`.\n\nIf a user disables battery optimization for your app, it's still affected by the timeout of shortService FGS.\n\nIf you start a foreground service that includes the `shortService` type and another foreground service type, the system ignores the `shortService` type declaration. However, the service must still adhere to the prerequisites of the other declared types. For more information, see the Foreground services documentation.\n\n### Special use\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`specialUse`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_SPECIAL_USE`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_SPECIAL_USE`\n\nRuntime prerequisites\n\nNone\n\nDescription\n\nCovers any valid foreground service use cases that aren't covered by the other foreground service types.\n\nIn addition to declaring the `FOREGROUND_SERVICE_TYPE_SPECIAL_USE` foreground service type, developers should declare use cases in the manifest. To do so, they specify the `<property>` element within the `<service>` element. These values and corresponding use cases are reviewed when you submit your app in the Google Play Console. The use cases you provide are free-form, and you should make sure to provide enough information to let the reviewer see why you need to use the `specialUse` type.\n\n```\n<service android:name=\"fooService\" android:foregroundServiceType=\"specialUse\">\n  <property android:name=\"android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE\"\n      android:value=\"explanation_for_special_use\"/>\n</service>\n```\n\n### System exempted\n\nForeground service type to declare in manifest under\n\n`android:foregroundServiceType`\n\n`systemExempted`\n\nPermission to declare in your manifest\n\n`FOREGROUND_SERVICE_SYSTEM_EXEMPTED`\n\nConstant to pass to `startForeground()`\n\n`FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED`\n\nRuntime prerequisites\n\nNone\n\nDescription\n\nReserved for system applications and specific system integrations, to continue to use foreground services.\n\nTo use this type, an app must meet at least one of the following criteria:\n\n- Device is in demo mode state\n- App is a Device Owner\n- App is a Profiler Owner\n- Safety Apps that have the `ROLE_EMERGENCY` role\n- Device Admin apps\n- Apps holding `SCHEDULE_EXACT_ALARM` or `USE_EXACT_ALARM` permission\n- VPN apps (configured using **Settings > Network & Internet > VPN**)\n\n Otherwise, declaring this type causes the system to throw a `ForegroundServiceTypeNotAllowedException`.\n\n## Google Play policy enforcement for using foreground service types\n\nIf your app targets Android 14 or higher, you'll need to declare your app's foreground service types in the Play Console's app content page (**Policy > App content**). For more information on how to declare your foreground service types in Play Console, see Understanding foreground service and full-screen intent requirements.\n\nWas this helpful?\n\nContent and code samples on this page are subject to the licenses described in the Content License. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.\n\nLast updated 2026-09-21 UTC.",
+    "contentLength": 15131,
+    "url": "https://developer.android.com/develop/background-work/services/fgs/service-types",
+    "metadata": {
+      "sourceUrl": "https://developer.android.com/develop/background-work/services/fgs/service-types",
+      "finalUrl": "https://developer.android.com/develop/background-work/services/fgs/service-types",
+      "title": "Foreground service types | Background work | Android Developers",
+      "description": "This document outlines the specific foreground service types required for apps targeting Android 14 (API level 34) and higher, detailing their manifest declarations, associated permissions, runtime prerequisites, and intended use cases.",
+      "language": "en",
+      "keywords": [
+        "Android 14",
+        "Foreground Services",
+        "Service Types",
+        "Background Work",
+        "Permissions",
+        "Manifest",
+        "Data Sync",
+        "Location",
+        "Media Playback",
+        "Camera"
+      ],
+      "canonicalUrl": "https://developer.android.com/develop/background-work/services/fgs/service-types",
+      "siteName": "Android Developers",
+      "image": "https://developer.android.com/static/images/social/android-developers.png",
+      "favicon": "https://www.gstatic.com/devrel-devsite/prod/vfdb441d2e08dbd9d3e48d8cd72b242388a87bcf7626bf5fb9df50c2bdd4a70fd/android/images/favicon.svg",
+      "openGraph": {
+        "siteName": "Android Developers",
+        "type": "website",
+        "title": "Foreground service types | Background work | Android Developers",
+        "description": "This document outlines the specific foreground service types required for apps targeting Android 14 (API level 34) and higher, detailing their manifest declarations, associated permissions, runtime prerequisites, and intended use cases.",
+        "url": "https://developer.android.com/develop/background-work/services/fgs/service-types",
+        "image": "https://developer.android.com/static/images/social/android-developers.png",
+        "imageWidth": "1200",
+        "imageHeight": "675",
+        "locale": "en"
+      },
+      "twitter": {
+        "card": "summary_large_image"
+      },
+      "alternates": [
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types",
+          "hreflang": "en"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types",
+          "hreflang": "x-default"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=ar",
+          "hreflang": "ar"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=bn",
+          "hreflang": "bn"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=zh-cn",
+          "hreflang": "zh-Hans"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=zh-tw",
+          "hreflang": "zh-Hant"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=fa",
+          "hreflang": "fa"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=fr",
+          "hreflang": "fr"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=de",
+          "hreflang": "de"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=he",
+          "hreflang": "he"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=hi",
+          "hreflang": "hi"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=id",
+          "hreflang": "id"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=it",
+          "hreflang": "it"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=ja",
+          "hreflang": "ja"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=ko",
+          "hreflang": "ko"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=pl",
+          "hreflang": "pl"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=pt-br",
+          "hreflang": "pt-BR"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=ru",
+          "hreflang": "ru"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=es-419",
+          "hreflang": "es-419"
+        },
+        {
+          "href": "https://developer.android.com/develop/background-work/services/fgs/service-types?hl=th",
+          "hreflang": "th"
+        }
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Foreground service types Stay organized with collections Save and categorize content based on your preferences."
+        },
+        {
+          "level": 3,
+          "text": "Camera"
+        },
+        {
+          "level": 3,
+          "text": "Connected device"
+        },
+        {
+          "level": 3,
+          "text": "Data sync"
+        },
+        {
+          "level": 3,
+          "text": "Health"
+        },
+        {
+          "level": 3,
+          "text": "Location"
+        },
+        {
+          "level": 3,
+          "text": "Media"
+        },
+        {
+          "level": 3,
+          "text": "Media processing"
+        },
+        {
+          "level": 3,
+          "text": "Media projection"
+        },
+        {
+          "level": 3,
+          "text": "Microphone"
+        },
+        {
+          "level": 3,
+          "text": "Phone call"
+        },
+        {
+          "level": 3,
+          "text": "Remote messaging"
+        },
+        {
+          "level": 3,
+          "text": "Short service"
+        },
+        {
+          "level": 3,
+          "text": "Special use"
+        },
+        {
+          "level": 3,
+          "text": "System exempted"
+        },
+        {
+          "level": 2,
+          "text": "Google Play policy enforcement for using foreground service types"
+        },
+        {
+          "level": 3,
+          "text": "More Android"
+        },
+        {
+          "level": 3,
+          "text": "Discover"
+        },
+        {
+          "level": 3,
+          "text": "Android Devices"
+        },
+        {
+          "level": 3,
+          "text": "Releases"
+        },
+        {
+          "level": 3,
+          "text": "Documentation and Downloads"
+        },
+        {
+          "level": 3,
+          "text": "Support"
+        }
+      ],
+      "additionalMeta": {
+        "google-signin-client-id": "721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com",
+        "google-signin-scope": "profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award https://www.googleapis.com/auth/devprofiles.full_control.firstparty",
+        "theme-color": "#34a853",
+        "charset": "utf-8",
+        "x-ua-compatible": "IE=Edge",
+        "viewport": "width=device-width, initial-scale=1"
+      },
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Foreground service types"
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Develop",
+              "item": "https://developer.android.com/develop"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Core areas",
+              "item": "https://developer.android.com/develop/core-areas"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Background work",
+              "item": "https://developer.android.com/develop/background-work"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Foreground service types",
+              "item": "https://developer.android.com/develop/background-work/services/fgs/service-types"
+            }
+          ]
+        }
+      ]
+    },
+    "cache_metadata": {
+      "status": "miss",
+      "age_ms": 0
+    },
+    "finalDOMState": "loaded",
+    "request_id": "1c680a78-837f-4435-b8c7-4b4c7723d93e"
+  },
+  "providerResponse": {
+    "httpStatus": 200
+  },
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "billing": {
+    "reportedCost": {
+      "currency": "USD",
+      "value": 900,
+      "unit": "MICRO_DOLLAR"
+    }
+  },
+  "resultCount": 1,
+  "billedUnits": 1,
+  "createdAt": "2026-10-01T12:47:03.793Z",
+  "completedAt": "2026-10-01T12:47:09.443Z",
+  "hints": {
+    "retrieve the response later": "monid runs get -r 01M3VR21TQVGNEBJ9E77ZMCD39",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page"
+  }
+}

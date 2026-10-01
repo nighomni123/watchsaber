@@ -1,0 +1,251 @@
+{
+  "runId": "01M3VR083KX0GY42EE99Y3D6W3",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "status": "COMPLETED",
+  "output": {
+    "success": true,
+    "markdown": "# Manage audio focus Stay organized with collections Save and categorize content based on your preferences.\n\n- On this page\n- Audio focus in Android 12 and higher\n - Existing audio focus behaviors\n- Audio focus in Android 8.0 through Android 11\n - Automatic ducking\n - Delayed focus gain\n- Audio focus in Android 7.1 and lower\n- Responding to an audio focus change\n\nTwo or more Android apps can play audio to the same output stream simultaneously, and the system mixes everything together. While this is technically impressive, it can be very aggravating to a user. To avoid every music app playing at the same time, Android introduces the idea of _audio focus_. Only one app can hold audio focus at a time.\n\nWhen your app needs to output audio, it should request audio focus. When it has focus, it can play sound. However, after you acquire audio focus you may not be able to keep it until you’re done playing. Another app can request focus, which preempts your hold on audio focus. If that happens, your app should pause playing or lower its volume to let users hear the new audio source more easily.\n\nBefore Android 12 (API level 31), audio focus is not managed by the system. So, while app developers are encouraged to comply with the audio focus guidelines, if an app continues to play loudly even after losing audio focus on a device running Android 11 (API level 30) or lower, the system can't prevent it. However, this app behavior leads to a bad user experience and can often lead users to uninstall the misbehaving app.\n\nA well-designed audio app should manage audio focus according to these general guidelines:\n\n- Call `requestAudioFocus()` immediately before starting to play and verify that the call returns `AUDIOFOCUS_REQUEST_GRANTED`. Make the call to `requestAudioFocus()` in the `onPlay()` callback of your media session.\n\n- When another app gains audio focus, stop or pause playing, or duck (that is, reduce) the volume.\n\n- When playback stops (for example, when the app has nothing left to play), abandon audio focus. Your app doesn't have to abandon audio focus if the user pauses playback but might resume playback later.\n\n- Use `AudioAttributes` to describe the type of audio your app is playing. For example, for apps that play speech, specify `CONTENT_TYPE_SPEECH`.\n\nAudio focus is handled differently depending on the version of Android that is running:\n\nAndroid 12 (API level 31) or later\n\nAudio focus is managed by the system. The system forces audio playback from an app to fade out when another app requests audio focus. The system also mutes audio playback when an incoming call is received.\n\nAndroid 8.0 (API level 26) through Android 11 (API level 30)\n\nAudio focus is not managed by the system, but includes some changes that were introduced starting in Android 8.0 (API level 26).\n\nAndroid 7.1 (API level 25) and lower\n\nAudio focus is not managed by the system, and apps manage audio focus using the `requestAudioFocus()` and `abandonAudioFocus()`.\n\n## Audio focus in Android 12 and higher\n\nA media or game app that uses audio focus shouldn't play audio after it loses focus. In Android 12 (API level 31) and higher, the system enforces this behavior. When an app requests audio focus while another app has the focus and is playing, the system forces the playing app to fade out. The addition of the fade-out provides a smoother transition when going from one app to another.\n\nThis fade out behavior happens when the following conditions are met:\n\n1. The first, currently playing app meets all of these criteria:\n\n - The app has either the `AudioAttributes.USAGE_MEDIA` or `AudioAttributes.USAGE_GAME` usage attribute.\n - The app successfully requested audio focus with `AudioManager.AUDIOFOCUS_GAIN`.\n - The app is not playing audio with content type `AudioAttributes.CONTENT_TYPE_SPEECH`.\n2. A second app requests audio focus with `AudioManager.AUDIOFOCUS_GAIN`.\n\nWhen these conditions are met, the audio system fades out the first app. At the end of the fade out, the system notifies the first app of focus loss. The app's players remain muted until the app requests audio focus again.\n\n### Existing audio focus behaviors\n\nYou should also be aware of these other cases that involve a switch in audio focus.\n\n#### Automatic ducking\n\nAutomatic ducking (temporarily reducing the audio level of one app so that another can be heard clearly) was introduced in Android 8.0 (API level 26).\n\nBy having the system implement ducking, you don't have to implement ducking in your app.\n\nAutomatic ducking also occurs when an audio notification grabs the focus from a playing app. The start of the notification playback is synchronized with the end of the ducking ramp.\n\nAutomatic ducking happens when the following conditions are met:\n\n1. The first, currently-playing app meets all of these criteria:\n\n - The app successfully requested audio focus with any type of focus gain.\n - The app is not playing audio with content type `AudioAttributes.CONTENT_TYPE_SPEECH`.\n - The app did not set `AudioFocusRequest.Builder.setWillPauseWhenDucked(true)`.\n2. A second app requests audio focus with `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK`.\n\nWhen these conditions are met, the audio system ducks all the active players of the first app while the second app has focus. When the second app abandons focus, it unducks them. The first app is not notified when it loses focus, so it doesn’t have to do anything.\n\nNote that automatic ducking is not performed when the user is listening to speech content, because the user might miss some of the program. For example, voice guidance for driving directions are not ducked.\n\n#### Mute current audio playback for incoming phone calls\n\nSome apps don't behave properly and continue playing audio during phone calls. This situation forces the user to find and mute or quit the offending app in order to hear their call. To prevent this, the system can mute audio from other apps while there is an incoming call. The system invokes this feature when an a incoming phone call is received and an app meets these conditions:\n\n- The app has either the `AudioAttributes.USAGE_MEDIA` or `AudioAttributes.USAGE_GAME` usage attribute.\n- The app successfully requested audio focus (any focus gain) and is playing audio.\n\nIf an app continues playing during the call, its playback is muted until the call ends. However, if an app starts playing during the call, that player is not muted on the assumption that the user started playback intentionally.\n\n## Audio focus in Android 8.0 through Android 11\n\nBeginning with Android 8.0 (API level 26), when you call `requestAudioFocus()` you must supply an `AudioFocusRequest` parameter. The `AudioFocusRequest` contains information about the audio context and capabilities of your app. The system uses this information to manage the gain and loss of audio focus automatically. To release audio focus, call the method `abandonAudioFocusRequest()` which also takes an `AudioFocusRequest` as its argument. Use the same `AudioFocusRequest` instance both when you request and abandon focus.\n\nTo create an `AudioFocusRequest`, use an `AudioFocusRequest.Builder`. Since a focus request must always specify the type of the request, the type is included in the constructor for the builder. Use the builder's methods to set the other fields of the request.\n\nThe `FocusGain` field is required; all the other fields are optional.\n\n| Method | Notes |\n| --- | --- |\n| `setFocusGain()` | This field is required in every request. It takes the same values as the `durationHint` used in the pre-Android 8.0 call to `requestAudioFocus()`: `AUDIOFOCUS_GAIN`, `AUDIOFOCUS_GAIN_TRANSIENT`, `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK`, or `AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE`. |\n| `setAudioAttributes()` | `AudioAttributes` describes the use case for your app. The system looks at them when an app gains and loses audio focus. Attributes supersede the notion of stream type. In Android 8.0 (API level 26) and later, stream types for any operation other than volume controls are deprecated. Use the same attributes in the focus request that you use in your audio player (as shown in the example following this table). Use an `AudioAttributes.Builder` to specify the attributes first, then use this method to assign the attributes to the request.<br>If not specified, `AudioAttributes` defaults to `AudioAttributes.USAGE_MEDIA`. |\n| `setWillPauseWhenDucked()` | When another app requests focus with `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK`, the app that has focus does not usually receive an `onAudioFocusChange()` callback because the system can do the ducking by itself. When you need to pause playback rather than duck the volume, call `setWillPauseWhenDucked(true)` and create and set an `OnAudioFocusChangeListener`, as described in automatic ducking. |\n| `setAcceptsDelayedFocusGain()` | A request for audio focus can fail when the focus is locked by another app. This method enables delayed focus gain: the ability to asynchronously acquire focus when it becomes available. Note that delayed focus gain only works if you also specify an `AudioManager.OnAudioFocusChangeListener` in the audio request, since your app needs to receive the callback in order to know that focus was granted. |\n| `setOnAudioFocusChangeListener()` | An `OnAudioFocusChangeListener` is only required if you also specify `willPauseWhenDucked(true)` or `setAcceptsDelayedFocusGain(true)` in the request. There are two methods for setting the listener: one with and one without a handler argument. The handler is the thread on which the listener runs. If you do not specify a handler, the handler associated with the main `Looper` is used. |\n\nThe following example shows how to use an `AudioFocusRequest.Builder` to build an `AudioFocusRequest` and request and abandon audio focus:\n\nKotlinJava More\n\n```\n// initializing variables for audio focus and playback management\naudioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager\nfocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).run {\n    setAudioAttributes(AudioAttributes.Builder().run {\n        setUsage(AudioAttributes.USAGE_GAME)\n        setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)\n        build()\n    })\n    setAcceptsDelayedFocusGain(true)\n    setOnAudioFocusChangeListener(afChangeListener, handler)\n    build()\n}\nval focusLock = Any()\n\nvar playbackDelayed = false\nvar playbackNowAuthorized = false\n\n// requesting audio focus and processing the response\nval res = audioManager.requestAudioFocus(focusRequest)\nsynchronized(focusLock) {\n    playbackNowAuthorized = when (res) {\n        AudioManager.AUDIOFOCUS_REQUEST_FAILED -> false\n        AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {\n            playbackNow()\n            true\n        }\n        AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {\n            playbackDelayed = true\n            false\n        }\n        else -> false\n    }\n}\n\n// implementing OnAudioFocusChangeListener to react to focus changes\noverride fun onAudioFocusChange(focusChange: Int) {\n    when (focusChange) {\n        AudioManager.AUDIOFOCUS_GAIN ->\n            if (playbackDelayed || resumeOnFocusGain) {\n                synchronized(focusLock) {\n                    playbackDelayed = false\n                    resumeOnFocusGain = false\n                }\n                playbackNow()\n            }\n        AudioManager.AUDIOFOCUS_LOSS -> {\n            synchronized(focusLock) {\n                resumeOnFocusGain = false\n                playbackDelayed = false\n            }\n            pausePlayback()\n        }\n        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {\n            synchronized(focusLock) {\n                // only resume if playback is being interrupted\n                resumeOnFocusGain = isPlaying()\n                playbackDelayed = false\n            }\n            pausePlayback()\n        }\n        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {\n            // ... pausing or ducking depends on your app\n        }\n    }\n}\n```\n\n```\n// initializing variables for audio focus and playback management\naudioManager = (AudioManager) Context.getSystemService(Context.AUDIO_SERVICE);\nplaybackAttributes = new AudioAttributes.Builder()\n        .setUsage(AudioAttributes.USAGE_GAME)\n        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)\n        .build();\nfocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)\n        .setAudioAttributes(playbackAttributes)\n        .setAcceptsDelayedFocusGain(true)\n        .setOnAudioFocusChangeListener(afChangeListener, handler)\n        .build();\nfinal Object focusLock = new Object();\n\nboolean playbackDelayed = false;\nboolean playbackNowAuthorized = false;\n\n// requesting audio focus and processing the response\nint res = audioManager.requestAudioFocus(focusRequest);\nsynchronized(focusLock) {\n    if (res == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {\n        playbackNowAuthorized = false;\n    } else if (res == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {\n        playbackNowAuthorized = true;\n        playbackNow();\n    } else if (res == AudioManager.AUDIOFOCUS_REQUEST_DELAYED) {\n        playbackDelayed = true;\n        playbackNowAuthorized = false;\n    }\n}\n\n// implementing OnAudioFocusChangeListener to react to focus changes\n@Override\npublic void onAudioFocusChange(int focusChange) {\n    switch (focusChange) {\n        case AudioManager.AUDIOFOCUS_GAIN:\n            if (playbackDelayed || resumeOnFocusGain) {\n                synchronized(focusLock) {\n                    playbackDelayed = false;\n                    resumeOnFocusGain = false;\n                }\n                playbackNow();\n            }\n            break;\n        case AudioManager.AUDIOFOCUS_LOSS:\n            synchronized(focusLock) {\n                resumeOnFocusGain = false;\n                playbackDelayed = false;\n            }\n            pausePlayback();\n            break;\n        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:\n            synchronized(focusLock) {\n                // only resume if playback is being interrupted\n                resumeOnFocusGain = isPlaying();\n                playbackDelayed = false;\n            }\n            pausePlayback();\n            break;\n        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:\n            // ... pausing or ducking depends on your app\n            break;\n        }\n    }\n}\n```\n\n### Automatic ducking\n\nIn Android 8.0 (API level 26), when another app requests focus with `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK` the system can duck and restore the volume without invoking the app's `onAudioFocusChange()` callback.\n\nWhile automatic ducking is acceptable behavior for music and video playback apps, it isn't useful when playing spoken content, such as in an audio book app. In this case, the app should pause instead.\n\nIf you want your app to pause when asked to duck rather than decrease its volume, create an `OnAudioFocusChangeListener` with an `onAudioFocusChange()` callback method that implements the desired pause/resume behavior. Call `setOnAudioFocusChangeListener()` to register the listener, and call `setWillPauseWhenDucked(true)` to tell the system to use your callback rather than perform automatic ducking.\n\n### Delayed focus gain\n\nSometimes the system cannot grant a request for audio focus because the focus is \"locked\" by another app, such as during a phone call. In this case, `requestAudioFocus()` returns `AUDIOFOCUS_REQUEST_FAILED`. When this happens, your app should not proceed with audio playback because it did not gain focus.\n\nThe method, `setAcceptsDelayedFocusGain(true)`, that lets your app handle a request for focus asynchronously. With this flag set, a request made when the focus is locked returns `AUDIOFOCUS_REQUEST_DELAYED`. When the condition that locked the audio focus no longer exists, such as when a phone call ends, the system grants the pending focus request and calls `onAudioFocusChange()` to notify your app.\n\nIn order to handle the delayed gain of focus, you must create an `OnAudioFocusChangeListener` with an `onAudioFocusChange()` callback method that implements the desired behavior and register the listener by calling `setOnAudioFocusChangeListener()`.\n\n## Audio focus in Android 7.1 and lower\n\nWhen you call `requestAudioFocus()` you must specify a duration hint, which may be honored by another app that is currently holding focus and playing:\n\n- Request permanent audio focus (`AUDIOFOCUS_GAIN`) when you plan to play audio for the foreseeable future (for example, when playing music) and you expect the previous holder of audio focus to stop playing.\n- Request transient focus (`AUDIOFOCUS_GAIN_TRANSIENT`) when you expect to play audio for only a short time and you expect the previous holder to pause playing.\n- Request transient focus with _ducking_ (`AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK`) to indicate that you expect to play audio for only a short time and that it's OK for the previous focus owner to keep playing if it \"ducks\" (lowers) its audio output. Both audio outputs are mixed into the audio stream. Ducking is particularly suitable for apps that use the audio stream intermittently, such as for audible driving directions.\n\nThe `requestAudioFocus()` method also requires an `AudioManager.OnAudioFocusChangeListener`. This listener should be created in the same activity or service that owns your media session. It implements the callback `onAudioFocusChange()` that your app receives when some other app acquires or abandons audio focus.\n\nThe following snippet requests permanent audio focus on the stream `STREAM_MUSIC` and registers an `OnAudioFocusChangeListener` to handle subsequent changes in audio focus. (The change listener is discussed in Responding to an audio focus change.)\n\nKotlinJava More\n\n```\naudioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager\nlateinit var afChangeListener AudioManager.OnAudioFocusChangeListener\n\n...\n// Request audio focus for playback\nval result: Int = audioManager.requestAudioFocus(\n        afChangeListener,\n        // Use the music stream.\n        AudioManager.STREAM_MUSIC,\n        // Request permanent focus.\n        AudioManager.AUDIOFOCUS_GAIN\n)\n\nif (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {\n    // Start playback\n}\n```\n\n```\nAudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);\nAudioManager.OnAudioFocusChangeListener afChangeListener;\n\n...\n// Request audio focus for playback\nint result = audioManager.requestAudioFocus(afChangeListener,\n                             // Use the music stream.\n                             AudioManager.STREAM_MUSIC,\n                             // Request permanent focus.\n                             AudioManager.AUDIOFOCUS_GAIN);\n\nif (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {\n    // Start playback\n}\n```\n\nWhen you finish playback, call `abandonAudioFocus()`.\n\nKotlinJava More\n\n```\naudioManager.abandonAudioFocus(afChangeListener)\n```\n\n```\n// Abandon audio focus when playback complete\naudioManager.abandonAudioFocus(afChangeListener);\n```\n\nThis notifies the system that you no longer require focus and unregisters the associated `OnAudioFocusChangeListener`. If you requested transient focus, this will notify an app that paused or ducked that it may continue playing or restore its volume.\n\n## Responding to an audio focus change\n\nWhen an app acquires audio focus, it must be able to release it when another app requests audio focus for itself. When this happens, your app receives a call to the `onAudioFocusChange()` method in the `AudioFocusChangeListener` that you specified when the app called `requestAudioFocus()`.\n\nThe `focusChange` parameter passed to `onAudioFocusChange()` indicates the kind of change that's happening. It corresponds to the duration hint used by the app that's acquiring focus. Your app should respond appropriately.\n\nTransient loss of focus\n\nIf the focus change is transient (`AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK` or `AUDIOFOCUS_LOSS_TRANSIENT`), your app should duck (if you are not relying on automatic ducking) or pause playing but otherwise maintain the same state.\n\nDuring a transient loss of audio focus, you should continue to monitor changes in audio focus and be prepared to resume normal playback when you regain the focus. When the blocking app abandons focus, you receive a callback (`AUDIOFOCUS_GAIN`). At this point, you can restore the volume to normal level or restart playback.\n\nPermanent loss of focus\n\nIf the audio focus loss is permanent (`AUDIOFOCUS_LOSS`), another app is playing audio. Your app should pause playback immediately, as it won't ever receive an `AUDIOFOCUS_GAIN` callback. To restart playback, the user must take an explicit action, like pressing the play transport control in a notification or app UI.\n\nThe following code snippet demonstrates how to implement the `OnAudioFocusChangeListener` and its `onAudioFocusChange()` callback. Notice the use of a `Handler` to delay the stop callback on a permanent loss of audio focus.\n\nKotlinJava More\n\n```\nprivate val handler = Handler()\nprivate val afChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->\n    when (focusChange) {\n        AudioManager.AUDIOFOCUS_LOSS -> {\n            // Permanent loss of audio focus\n            // Pause playback immediately\n            mediaController.transportControls.pause()\n            // Wait 30 seconds before stopping playback\n            handler.postDelayed(delayedStopRunnable, TimeUnit.SECONDS.toMillis(30))\n        }\n        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {\n            // Pause playback\n        }\n        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {\n            // Lower the volume, keep playing\n        }\n        AudioManager.AUDIOFOCUS_GAIN -> {\n            // Your app has been granted audio focus again\n            // Raise volume to normal, restart playback if necessary\n        }\n    }\n}\n```\n\n```\nprivate Handler handler = new Handler();\nAudioManager.OnAudioFocusChangeListener afChangeListener =\n  new AudioManager.OnAudioFocusChangeListener() {\n    public void onAudioFocusChange(int focusChange) {\n      if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {\n        // Permanent loss of audio focus\n        // Pause playback immediately\n        mediaController.getTransportControls().pause();\n        // Wait 30 seconds before stopping playback\n        handler.postDelayed(delayedStopRunnable,\n          TimeUnit.SECONDS.toMillis(30));\n      }\n      else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {\n        // Pause playback\n      } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {\n        // Lower the volume, keep playing\n      } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {\n        // Your app has been granted audio focus again\n        // Raise volume to normal, restart playback if necessary\n      }\n    }\n  };\n```\n\nThe handler uses a `Runnable` that looks like this:\n\nKotlinJava More\n\n```\nprivate var delayedStopRunnable = Runnable {\n    mediaController.transportControls.stop()\n}\n```\n\n```\nprivate Runnable delayedStopRunnable = new Runnable() {\n    @Override\n    public void run() {\n        getMediaController().getTransportControls().stop();\n    }\n};\n```\n\nTo ensure the delayed stop does not kick in if the user restarts playback, call `mHandler.removeCallbacks(mDelayedStopRunnable)` in response to any state changes. For example, call `removeCallbacks()` in your Callback's `onPlay()`, `onSkipToNext()`, etc. You should also call this method in your service's `onDestroy()` callback when cleaning up the resources used by your service.\n\nWas this helpful?\n\nContent and code samples on this page are subject to the licenses described in the Content License. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.\n\nLast updated 2026-09-16 UTC.",
+    "contentLength": 23843,
+    "url": "https://developer.android.com/media/optimize/audio-focus",
+    "metadata": {
+      "sourceUrl": "https://developer.android.com/media/optimize/audio-focus",
+      "finalUrl": "https://developer.android.com/media/optimize/audio-focus",
+      "title": "Manage audio focus | Android media | Android Developers",
+      "language": "en",
+      "canonicalUrl": "https://developer.android.com/media/optimize/audio-focus",
+      "siteName": "Android Developers",
+      "image": "https://developer.android.com/static/images/social/android-developers.png",
+      "favicon": "https://www.gstatic.com/devrel-devsite/prod/vfdb441d2e08dbd9d3e48d8cd72b242388a87bcf7626bf5fb9df50c2bdd4a70fd/android/images/favicon.svg",
+      "openGraph": {
+        "siteName": "Android Developers",
+        "type": "website",
+        "title": "Manage audio focus | Android media | Android Developers",
+        "url": "https://developer.android.com/media/optimize/audio-focus",
+        "image": "https://developer.android.com/static/images/social/android-developers.png",
+        "imageWidth": "1200",
+        "imageHeight": "675",
+        "locale": "en"
+      },
+      "twitter": {
+        "card": "summary_large_image"
+      },
+      "alternates": [
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus",
+          "hreflang": "en"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus",
+          "hreflang": "x-default"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=ar",
+          "hreflang": "ar"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=bn",
+          "hreflang": "bn"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=zh-cn",
+          "hreflang": "zh-Hans"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=zh-tw",
+          "hreflang": "zh-Hant"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=fa",
+          "hreflang": "fa"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=fr",
+          "hreflang": "fr"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=de",
+          "hreflang": "de"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=he",
+          "hreflang": "he"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=hi",
+          "hreflang": "hi"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=id",
+          "hreflang": "id"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=it",
+          "hreflang": "it"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=ja",
+          "hreflang": "ja"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=ko",
+          "hreflang": "ko"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=pl",
+          "hreflang": "pl"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=pt-br",
+          "hreflang": "pt-BR"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=ru",
+          "hreflang": "ru"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=es-419",
+          "hreflang": "es-419"
+        },
+        {
+          "href": "https://developer.android.com/media/optimize/audio-focus?hl=th",
+          "hreflang": "th"
+        }
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Manage audio focus Stay organized with collections Save and categorize content based on your preferences."
+        },
+        {
+          "level": 2,
+          "text": "Audio focus in Android 12 and higher"
+        },
+        {
+          "level": 3,
+          "text": "Existing audio focus behaviors"
+        },
+        {
+          "level": 4,
+          "text": "Automatic ducking"
+        },
+        {
+          "level": 4,
+          "text": "Mute current audio playback for incoming phone calls"
+        },
+        {
+          "level": 2,
+          "text": "Audio focus in Android 8.0 through Android 11"
+        },
+        {
+          "level": 3,
+          "text": "Automatic ducking"
+        },
+        {
+          "level": 3,
+          "text": "Delayed focus gain"
+        },
+        {
+          "level": 2,
+          "text": "Audio focus in Android 7.1 and lower"
+        },
+        {
+          "level": 2,
+          "text": "Responding to an audio focus change"
+        },
+        {
+          "level": 3,
+          "text": "More Android"
+        },
+        {
+          "level": 3,
+          "text": "Discover"
+        },
+        {
+          "level": 3,
+          "text": "Android Devices"
+        },
+        {
+          "level": 3,
+          "text": "Releases"
+        },
+        {
+          "level": 3,
+          "text": "Documentation and Downloads"
+        },
+        {
+          "level": 3,
+          "text": "Support"
+        }
+      ],
+      "additionalMeta": {
+        "google-signin-client-id": "721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com",
+        "google-signin-scope": "profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award https://www.googleapis.com/auth/devprofiles.full_control.firstparty",
+        "theme-color": "#34a853",
+        "charset": "utf-8",
+        "x-ua-compatible": "IE=Edge",
+        "viewport": "width=device-width, initial-scale=1"
+      },
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Manage audio focus"
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Camera &amp; media dev center",
+              "item": "https://developer.android.com/media"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Manage audio focus",
+              "item": "https://developer.android.com/media/optimize/audio-focus"
+            }
+          ]
+        }
+      ]
+    },
+    "cache_metadata": {
+      "status": "miss",
+      "age_ms": 0
+    },
+    "finalDOMState": "loaded",
+    "request_id": "a9b4aafa-a440-43b8-b4ff-319e8d75dc7e"
+  },
+  "providerResponse": {
+    "httpStatus": 200
+  },
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "billing": {
+    "reportedCost": {
+      "currency": "USD",
+      "value": 900,
+      "unit": "MICRO_DOLLAR"
+    }
+  },
+  "resultCount": 1,
+  "billedUnits": 1,
+  "createdAt": "2026-10-01T12:46:04.647Z",
+  "completedAt": "2026-10-01T12:46:09.876Z",
+  "hints": {
+    "retrieve the response later": "monid runs get -r 01M3VR083KX0GY42EE99Y3D6W3",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page"
+  }
+}

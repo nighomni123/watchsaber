@@ -1,0 +1,239 @@
+Close
+
+0%
+
+0%
+
+# Lightsaber prop with sound effects
+
+An Arduino-based lightsaber with sound effects and an accelerometer
+
+Matthias Nigmann
+
+# Become a Hackaday.io member
+
+Not a member? You should 
+Sign up.
+
+Already have an account? 
+Log in.
+
+# Just one more thing
+
+To make the experience fit your profile, pick a username and tell us what interests you.
+
+Pick an awesome username
+
+hackaday.io/
+
+Your profile's URL: hackaday.io/**username**. Max 25 alphanumeric characters.
+
+Pick a few interests
+
+Projects that share your interests
+
+People that share your interests
+
+We found 
+
+ and 
+
+based on your interests.
+
+Join this project
+
+Similar projects worth following
+
+599
+views
+
+0
+comments
+
+1
+followers
+
+2
+likes
+
+* Description
+* Details
+* Files 2
+  + View all
+* Components 0
+* Instructions 0
+* Discussion 0
+
+View Gallery
+
+## Description
+
+The leader of a maker club I am part of was interested in building lightsaber props for next year&apos;s club project. His vision for the project included LED light strips for the &quot;blade&quot;, an accelerometer, and sound effects that responded to motion. However, all of the kits he found that supported these features were too expensive for a club project. I offered to help him design and program the electronics for the lightsaber, while he worked on the body of the lightsaber.
+
+## Details
+
+The main requirements for this project are listed below:
+
+1. The lightsaber should produce its characteristic buzzing or humming noise and modulate the buzzing noise as the lightsaber is moved or rotated.
+2. The lightsaber should be able to play sound effects from a memory chip, for example, when the blade is turned on or when the lightsaber collides with something.
+3. The lightsaber should be battery-powered and should be entirely self contained. This means that the electronics and batteries must fit inside the handle of the lightsaber.
+4. The project must not be too expensive. Ideally, the electronics should cost around 10 dollars per person, since the total cost will also include the LEDs, the tube for the blade, the handle, and the batteries.
+5. The project should be simple enough to be completed by kids of various ages in six 1.5-2 hour meetings. However, there must also be enough time to build the body of the lightsaber and assemble the parts, so the electronics will be limited to maybe three or four meetings. This means that the electronics may not involve any surface mount components.
+6. The project should involve some Arduino programming. However, since the kids will not be able to understand assembly code or register manipulation, all of these features must be hidden in an Arduino library.
+
+With these requirements in mind, I began to design the electronics. First, I considered using just an Arduino Nano to implement all of the features. The Nano would write audio data to a DAC, which would feed into an amplifier. However, this would mean that the Nano must be able to continuously write to the DAC 44100 times per second while also controlling the LED strip and reading from the memory chip and accelerometer. All of these steps would have to be implemented very carefully to allow them to all fit in the allowed time, which would require a lot of assembly programming and would not leave much free time for user code.
+
+To fix these issues, I split up these tasks between two processors: an Arduino Nano for reading from the accelerometer and controlling the LEDs, and an ATtiny85 for generating all of the sound effects and writing to the DAC. The Nano then sends commands to the ATtiny to control the volume of the buzzing, start playback, and control the volume of the playback. I also reduced the sample rate of the audio from 44100Hz to 33333Hz, which gives me 32% more time per sample.
+
+This "dual-core" structure offloads the majority of the timing-critical work onto the ATtiny, which can then be programmed in assembly. The Nano can then be programmed mostly using Arduino code, with only a little assembly hidden away in a library.
+
+The audio amplifier also presented a number of challenges. The speaker must be small enough to fit inside the handle, but loud enough to generate a sound that is audible a few meters away. The club leader had ordered a small (~3cm diameter) 3 watt speaker for testing. To maximize the loudness of the sound that the speaker could produce, I used a full-bridge driver, which drives both terminals of the speaker, but with inverted signals. Thus, the voltage across the speaker is twice the amplitude of the input signal, and the produced sound is twice as loud.
+
+Since the buzzing sound can be varied as the lightsaber is moved, it would be impractical to use and store a clip of original lightsaber audio. Thus, I simplified the buzzing sound so that it consists of a 25-millisecond clip that is played on repeat continuously. This clip is stored in the program memory of the ATtiny. At the chosen sample rate, the clip consists of 833 samples. A plot of the waveform is shown below:
+
+The specific design of the buzzing sound will likely be modified later in the project.
+
+The DAC used in this project will be an MCP4911 10-bit DAC, and the memory chip will be an SST25VF080B 8 megabit SPI flash chip. This chip was one of the few through-hole flash chips I could find on Digikey, and should be enough to store around 30 seconds...
+
+Read more »
+
+View all details
+
+## Files
+
+|  |  |  |
+| --- | --- | --- |
+| lightsaber\_proto1.schgEDA schematic of the first prototype  sch - 21.21 kB - 05/11/2024 at 03:42 |  | Download |
+| buzz.wavLightsaber buzz  Waveform Audio File Format (WAV) - 162.74 kB - 05/05/2024 at 00:18 |  | Download |
+
+## Project Logs Collapse
+
+* ### Second PCB version and the new power design
+
+  Matthias Nigmann •
+  09/26/2024 at 05:04 •
+  0 comments
+
+  While trying to work out how the lightsaber would be powered, I found out that the LED strip consumed 70mA even when all of the pixels were off. Since the plan was to program the lightsaber to go into a low-power mode if it was inactive, this presented a problem. Even if the Nano and the audio amplifier were completely shut down, the lightsaber would still consume power until it was switched off. This also would have required a more expensive switch, since the switch would have to be able to switch the full current of the LEDs.
+
+  To fix this, I added a MOSFET which could turn the power to the LED strip on and off. I also separated the LED and Arduino/amplifier grounds. This allows the Arduino to be powered through the protection circuit on the battery charger board and through a cheaper, lower-current switch and the LEDs to be powered directly from the battery. If the battery protection circuit cuts off power to the Arduino, or the user opens the switch, then the MOSFET turns off and the LEDs are also disconnected.
+
+  A simplified schematic is shown below. A full schematic can be found on this project's Github page.
+
+  Two level shifter circuits were required to make this change work. If the gate of the MOSFET were connected directly to an output of the Arduino, then when the Arduino is switched off (either by the user or the protection circuit), the ground of the Arduino circuit would float up towards Vcc, and so would all of the outputs. This would cause the MOSFET to turn on whenever the Arduino was off, defeating the purpose of having a MOSFET in the first place. Thus, I added a level shifter circuit consisting of Q7 and the supporting resistors. When the /SW output goes low, Q7 turns on, supplying voltage to the gate of the MOSFET and turning it on.
+
+  The second level shifter circuit consists of D4 and R12. This ensures that the voltage on the DATA output to the LEDs is not negative with respect to the LED ground.
+
+  Finally, I added C7 to fix an issue with the V1 PCB, where switching noise from the LEDs coupled into the audio amplifier.
+
+  I updates the PCB design to reflect these changes. To fit in the new components, I had to rearrange the audio amplifier to make it smaller. The assembled V2 board is shown below:
+* ### Powering the lightsaber
+
+  Matthias Nigmann •
+  06/19/2024 at 03:53 •
+  0 comments
+
+  One of the major open questions about the current design is the power source. Ideally the device should be battery powered, so whatever battery I select should be able to run both the sound and the light strips for at least an hour.
+
+  Today I tested some 18650 lithium-ion cells from an old laptop battery. The two cells were connected in parallel. After charging the cells, I discharged them by connecting one of the light strips with all of the pixels set to red at full intensity. Since the LEDs were not running at their intended 5 volts, but only at around 3.7 volts, they were less bright, but also consumed significantly less power.
+
+  The batteries started out at around 4 volts, with the LEDs drawing a total of about 1 amp. After about 3.5 hours, the voltage had dropped to about 3.5 volts and the current had dropped to around 650mA. I calculated the total capacity of the two batteries as around 2.8 Ah.
+
+  Since I was only testing the batteries with one of the LED strips, I would expect them to last around 1.5 hours with two strips and the amplifier. Furthermore, the batteries were quite old and only have 2800mAh combined, so a single new 3000mAh battery would probably suffice to power the lightsaber for a good amount of time. This also helps keep the cost down, since 18650 batteries are quite expensive.
+* ### Second prototype
+
+  Matthias Nigmann •
+  05/25/2024 at 03:24 •
+  0 comments
+
+  Today I received the PCBs I ordered and the parts for the second prototype of the lightsaber. Assembling the PCB was very straightforward and worked with almost no issues. The sound is much louder and clearer and the reliability of the circuit has greatly improved.
+
+  The only issue I have with the second prototype is that the accelerometer is backwards. As it is now, the board would not fit inside the 1.25 inch PVC pipe we were planning to use as a handle. However, this is not an issue, as the headers on the accelerometer were accidentally installed upside down. We will just have to make sure that the kids solder the headers to the right side of the board.
+
+  I also had some difficulty uploading the audio data to the flash chip. Initially, I used this programmer, which consists of a sketch uploaded to an Arduino Mega and a Python program for communicating with it. However, this programmer was having some issues, probably because the chip I ordered for the second prototype was subtly different from the the chip I used for the first prototype. Eventually, I gave up on this method, and wrote my own crude programmer, which worked perfectly and was also much faster.
+
+  One of the key requirements for this project was that the Arduino Nano could be programmed (at least partially) using standard Arduino functions and libraries. To this end, I started writing an Arduino library that encapsulates all of the functionality necessary for interacting with the ATtiny and with the accelerometer.
+
+  I have updated the Github repository with the Arduino files, the Arduino library, the schematic, and the PCB files for this project. The schematic is also shown here.
+* ### Adding the accelerometer
+
+  Matthias Nigmann •
+  05/19/2024 at 20:01 •
+  0 comments
+
+  The code on Github can now read the rotation data from the accelerometer and adjust the amplitude of the buzzing sound accordingly. I also changed the way the accelerometer and ATtiny connect to the Nano like I described in the previous update. The accelerometer connects to the I2C interface on pins A4 and A5 and the ATtiny connects to the hardware SPI on pins D10, D12, and D13.
+
+  Roughly 100 times per second, the Nano reads the gyroscope data from the accelerometer. The magnitude of the rotation is smoothed using a simple low-pass filter, and then converted to an amplitude value, which is sent to the ATtiny. The smoothing step makes sure that the amplitude does not fluctuate rapidly due to noise in the measurement
+
+  Let  be the angular velocity around the x-axis and  be the angular velocity around the y-axis. The first step is to apply the low-pass filter to get the smoothed value , which is done using the formula:
+
+  The next step is to calculate the buzz amplitude , which can range from 0 to 255. This is done with the formula:
+
+  The constant offset of 50 ensures that even when the lightsaber is held still, some sound can still be heard. All of the calculations are done using integer arithmetic, and the divisions are implemented using bitshifts.
+
+  When testing the program, I noticed a slight staticky noise in the buzz when I moved the accelerometer. I suspect this is caused by the signal suddenly changing from one level to another when the amplitude is changed. I will likely program the ATtiny to slowly ramp the amplitude from its current value to its new value to minimize these effects.
+* Matthias Nigmann •
+  05/18/2024 at 04:08 •
+  0 comments
+
+  When I recently tested the accelerometer with the Arduino Nano, I realized that its SPI interface was not working, but its I2C interface was. This led me to an obvious design simplification that I missed earlier: connecting the accelerometer via I2C and using the Nano's hardware SPI for interfacing with the ATtiny. This would let me do away with the assembly code that I currently need to communicate with the ATtiny, since the hardware already takes care of the synchronization and timing issues. I hope to implement this change soon.
+
+  I also implemented some additional commands on the ATtiny for starting playback and for setting the volume of the playback. The commands I have implemented are shown below:
+
+  ```
+  0000 0000 dddd dddd       Set buzz volume to d0001 0000 dddd dddd       Set playback volume to d0100 dddd dddd dddd       Load lower 12 bits of the                          playback address0101 dddd dddd dddd       Load upper 12 bits of the                           playback address and begin                          playback. Starting playback                           needs two commands, since                           the address has 24 bits. 
+  ```
+
+  I also fixed a strange bug in the multiplication algorithm I implemented on the ATtiny. I found this bug when I realized that the playback was still audible even when I set its volume to zero. Furthermore, the playback would get quieter as I increased the volume from 0 to 7. At 8, it would be louder than at 0. This strange pattern repeated every 8 volume units. I found that this bug was caused by stray values in the AVR core's carry bit. The multiplication algorithm involves checking each bit (from LSB to MSB) in the volume register, adding the sample value to the result register if it is set, and then shifting the result register to the right. If the carry bit was set by the addition, then the shift would load it into the MSB of the result register. However, the unexpected side effect of this was that if the addition was not executed, then the carry bit would retain its value from the previous operation. Thus, the MSB of the result register was loaded with unexpected values, affecting the output of the multiplication. I fixed this by first shifting the sample value to the right before multiplying, and then skipping the final shift. Then, if the LSB of the sample value was set before the initial shift, then the volume was added to the result register.
+
+  The most recent version of the code, which contains the fix for this bug, can be found at https://github.com/mnigmann/lightsaber
+* Matthias Nigmann •
+  05/11/2024 at 03:48 •
+  0 comments
+
+  I have added the gEDA schematic file for the first prototype to this project; it can be downloaded here or from the Files tab.
+
+  Technical details on the first prototype, including explanations of the assembly code and schematic, can be found at https://mnigmann.blogspot.com/2024/05/lightsaber-prop-first-prototype.html
+
+## Enjoy this project?
+
+Share
+
+## Discussions
+
+Log In/Sign up to comment
+
+# Become a Hackaday.io Member
+
+Create an account to leave a comment.
+Already have an account?
+Log In.
+
+Sign up with Github
+Sign up with X
+OR
+
+## Similar Projects
+
+Project Owner
+Contributor
+
+### Sonassist
+
+Simon Merrett
+
+Project Owner
+Contributor
+
+### Ikea Table Audio Visualizer
+
+AndyMac
+
+# Does this project spark your interest?
+
+Become a member to follow this project and never miss any updates
+
+
+
+Yes, delete it
+Cancel

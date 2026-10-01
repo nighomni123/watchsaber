@@ -1,0 +1,279 @@
+{
+  "runId": "01M3VR1K4PBZZYHR7D7M4TVZB1",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "status": "COMPLETED",
+  "output": {
+    "success": true,
+    "markdown": "# Motion sensors Stay organized with collections Save and categorize content based on your preferences.\n\n- On this page\n- Android Open Source Project sensors\n- Use the gravity sensor\n- Use the linear accelerometer\n- Use the rotation vector sensor\n- Use the significant motion sensor\n- Use the step counter sensor\n- Use the step detector sensor\n- Work with raw data\n - Use the accelerometer\n - Use the gyroscope\n- Additional code samples\n - You should also read\n\nThe Android platform provides several sensors that let you monitor the motion of a device.\n\nThe sensors' possible architectures vary by sensor type:\n\n- The gravity, linear acceleration, rotation vector, significant motion, step counter, and step detector sensors are either hardware-based or software-based.\n- The accelerometer and gyroscope sensors are always hardware-based.\n\nMost Android-powered devices have an accelerometer, and many now include a gyroscope. The availability of the software-based sensors is more variable because they often rely on one or more hardware sensors to derive their data. Depending on the device, these software-based sensors can derive their data either from the accelerometer and magnetometer or from the gyroscope.\n\nMotion sensors are useful for monitoring device movement, such as tilt, shake, rotation, or swing. The movement is usually a reflection of direct user input (for example, a user steering a car in a game or a user controlling a ball in a game), but it can also be a reflection of the physical environment in which the device is sitting (for example, moving with you while you drive your car). In the first case, you are monitoring motion relative to the device's frame of reference or your application's frame of reference; in the second case you are monitoring motion relative to the world's frame of reference. Motion sensors by themselves are not typically used to monitor device position, but they can be used with other sensors, such as the geomagnetic field sensor, to determine a device's position relative to the world's frame of reference (see Position Sensors for more information).\n\nAll of the motion sensors return multi-dimensional arrays of sensor values for each `SensorEvent`. For example, during a single sensor event the accelerometer returns acceleration force data for the three coordinate axes, and the gyroscope returns rate of rotation data for the three coordinate axes. These data values are returned in a `float` array (`values`) along with other `SensorEvent` parameters. Table 1 summarizes the motion sensors that are available on the Android platform.\n\n**Table 1.** Motion sensors that are supported on the Android platform.\n\n| Sensor | Sensor event data | Description | Units of measure |\n| --- | --- | --- | --- |\n| `TYPE_ACCELEROMETER` | `SensorEvent.values[0]` | Acceleration force along the x axis (including gravity). | m/s2 |\n| `SensorEvent.values[1]` | Acceleration force along the y axis (including gravity). |\n| `SensorEvent.values[2]` | Acceleration force along the z axis (including gravity). |\n| `TYPE_ACCELEROMETER_UNCALIBRATED` | `SensorEvent.values[0]` | Measured acceleration along the X axis without any bias compensation. | m/s2 |\n| `SensorEvent.values[1]` | Measured acceleration along the Y axis without any bias compensation. |\n| `SensorEvent.values[2]` | Measured acceleration along the Z axis without any bias compensation. |\n| `SensorEvent.values[3]` | Measured acceleration along the X axis with estimated bias compensation. |\n| `SensorEvent.values[4]` | Measured acceleration along the Y axis with estimated bias compensation. |\n| `SensorEvent.values[5]` | Measured acceleration along the Z axis with estimated bias compensation. |\n| `TYPE_GRAVITY` | `SensorEvent.values[0]` | Force of gravity along the x axis. | m/s2 |\n| `SensorEvent.values[1]` | Force of gravity along the y axis. |\n| `SensorEvent.values[2]` | Force of gravity along the z axis. |\n| `TYPE_GYROSCOPE` | `SensorEvent.values[0]` | Rate of rotation around the x axis. | rad/s |\n| `SensorEvent.values[1]` | Rate of rotation around the y axis. |\n| `SensorEvent.values[2]` | Rate of rotation around the z axis. |\n| `TYPE_GYROSCOPE_UNCALIBRATED` | `SensorEvent.values[0]` | Rate of rotation (without drift compensation) around the x axis. | rad/s |\n| `SensorEvent.values[1]` | Rate of rotation (without drift compensation) around the y axis. |\n| `SensorEvent.values[2]` | Rate of rotation (without drift compensation) around the z axis. |\n| `SensorEvent.values[3]` | Estimated drift around the x axis. |\n| `SensorEvent.values[4]` | Estimated drift around the y axis. |\n| `SensorEvent.values[5]` | Estimated drift around the z axis. |\n| `TYPE_LINEAR_ACCELERATION` | `SensorEvent.values[0]` | Acceleration force along the x axis (excluding gravity). | m/s2 |\n| `SensorEvent.values[1]` | Acceleration force along the y axis (excluding gravity). |\n| `SensorEvent.values[2]` | Acceleration force along the z axis (excluding gravity). |\n| `TYPE_ROTATION_VECTOR` | `SensorEvent.values[0]` | Rotation vector component along the x axis (x \\* sin(θ/2)). | Unitless |\n| `SensorEvent.values[1]` | Rotation vector component along the y axis (y \\* sin(θ/2)). |\n| `SensorEvent.values[2]` | Rotation vector component along the z axis (z \\* sin(θ/2)). |\n| `SensorEvent.values[3]` | Scalar component of the rotation vector ((cos(θ/2)).1 |\n| `TYPE_SIGNIFICANT_MOTION` | N/A | N/A | N/A |\n| `TYPE_STEP_COUNTER` | `SensorEvent.values[0]` | Number of steps taken by the user since the last reboot while the sensor was activated. | Steps |\n| `TYPE_STEP_DETECTOR` | N/A | N/A | N/A |\n\n**1** The scalar component is an optional value.\n\nThe rotation vector sensor and the gravity sensor are the most frequently used sensors for motion detection and monitoring. The rotational vector sensor is particularly versatile and can be used for a wide range of motion-related tasks, such as detecting gestures, monitoring angular change, and monitoring relative orientation changes. For example, the rotational vector sensor is ideal if you are developing a game, an augmented reality application, a 2-dimensional or 3-dimensional compass, or a camera stabilization app. In most cases, using these sensors is a better choice than using the accelerometer and geomagnetic field sensor or the orientation sensor.\n\n### Android Open Source Project sensors\n\nThe Android Open Source Project (AOSP) provides three software-based motion sensors: a gravity sensor, a linear acceleration sensor, and a rotation vector sensor. These sensors were updated in Android 4.0 and now use a device's gyroscope (in addition to other sensors) to improve stability and performance. If you want to try these sensors, you can identify them by using the `getVendor()` method and the `getVersion()` method (the vendor is Google LLC; the version number is 3). Identifying these sensors by vendor and version number is necessary because the Android system considers these three sensors to be secondary sensors. For example, if a device manufacturer provides their own gravity sensor, then the AOSP gravity sensor shows up as a secondary gravity sensor. All three of these sensors rely on a gyroscope: if a device does not have a gyroscope, these sensors do not show up and are not available for use.\n\n## Use the gravity sensor\n\nThe gravity sensor provides a three dimensional vector indicating the direction and magnitude of gravity. Typically, this sensor is used to determine the device's relative orientation in space. The following code shows you how to get an instance of the default gravity sensor:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);\n```\n\nThe units are the same as those used by the acceleration sensor (m/s2), and the coordinate system is the same as the one used by the acceleration sensor.\n\n**Note:** When a device is at rest, the output of the gravity sensor should be identical to that of the accelerometer.\n\n## Use the linear accelerometer\n\nThe linear acceleration sensor provides you with a three-dimensional vector representing acceleration along each device axis, excluding gravity. You can use this value to perform gesture detection. The value can also serve as input to an inertial navigation system, which uses dead reckoning. The following code shows you how to get an instance of the default linear acceleration sensor:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);\n```\n\nConceptually, this sensor provides you with acceleration data according to the following relationship:\n\n```\nlinear acceleration = acceleration - acceleration due to gravity\n```\n\nYou typically use this sensor when you want to obtain acceleration data without the influence of gravity. For example, you could use this sensor to see how fast your car is going. The linear acceleration sensor always has an offset, which you need to remove. The simplest way to do this is to build a calibration step into your application. During calibration you can ask the user to set the device on a table, and then read the offsets for all three axes. You can then subtract that offset from the acceleration sensor's direct readings to get the actual linear acceleration.\n\nThe sensor coordinate system is the same as the one used by the acceleration sensor, as are the units of measure (m/s2).\n\n## Use the rotation vector sensor\n\nThe rotation vector represents the orientation of the device as a combination of an angle and an axis, in which the device has rotated through an angle θ around an axis (x, y, or z). The following code shows you how to get an instance of the default rotation vector sensor:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);\n```\n\nThe three elements of the rotation vector are expressed as follows:\n\nWhere the magnitude of the rotation vector is equal to sin(θ/2), and the direction of the rotation vector is equal to the direction of the axis of rotation.\n\n**Figure 1.** Coordinate system used by the rotation vector sensor.\n\nThe three elements of the rotation vector are equal to the last three components of a unit quaternion (cos(θ/2), x\\*sin(θ/2), y\\*sin(θ/2), z\\*sin(θ/2)). Elements of the rotation vector are unitless. The x, y, and z axes are defined in the same way as the acceleration sensor. The reference coordinate system is defined as a direct orthonormal basis (see figure 1). This coordinate system has the following characteristics:\n\n- X is defined as the vector product Y x Z. It is tangential to the ground at the device's current location and points approximately East.\n- Y is tangential to the ground at the device's current location and points toward the geomagnetic North Pole.\n- Z points toward the sky and is perpendicular to the ground plane.\n\nFor a sample application that shows how to use the rotation vector sensor, see RotationVectorDemo.java.\n\n## Use the significant motion sensor\n\nThe significant motion sensor triggers an event each time significant motion is detected and then it disables itself. A significant motion is a motion that might lead to a change in the user's location; for example walking, biking, or sitting in a moving car. The following code shows you how to get an instance of the default significant motion sensor and how to register an event listener:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval mSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)\nval triggerEventListener = object : TriggerEventListener() {\n    override fun onTrigger(event: TriggerEvent?) {\n        // Do work\n    }\n}\nmSensor?.also { sensor ->\n    sensorManager.requestTriggerSensor(triggerEventListener, sensor)\n}\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\nprivate TriggerEventListener triggerEventListener;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);\n\ntriggerEventListener = new TriggerEventListener() {\n    @Override\n    public void onTrigger(TriggerEvent event) {\n        // Do work\n    }\n};\n\nsensorManager.requestTriggerSensor(triggerEventListener, mSensor);\n```\n\nFor more information, see `TriggerEventListener`.\n\n## Use the step counter sensor\n\nThe step counter sensor provides the number of steps taken by the user since the last reboot while the sensor was activated. The step counter has more latency (up to 10 seconds) but more accuracy than the step detector sensor.\n\n**Note:** You must declare the `ACTIVITY_RECOGNITION` permission in order for your app to use this sensor on devices running Android 10 (API level 29) or higher.\n\nThe following code shows you how to get an instance of the default step counter sensor:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);\n```\n\nTo preserve the battery on devices running your app, you should use the `JobScheduler` class to retrieve the current value from the step counter sensor at a specific interval. Although different types of apps require different sensor-reading intervals, you should make this interval as long as possible unless your app requires real-time data from the sensor.\n\n## Use the step detector sensor\n\nThe step detector sensor triggers an event each time the user takes a step. The latency is expected to be below 2 seconds.\n\n**Note:** You must declare the `ACTIVITY_RECOGNITION` permission in order for your app to use this sensor on devices running Android 10 (API level 29) or higher.\n\nThe following code shows you how to get an instance of the default step detector sensor:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);\n```\n\n## Work with raw data\n\nThe following sensors provide your app with raw data about the linear and rotational forces being applied to the device. In order to use the values from these sensors effectively, you need to filter out factors from the environment, such as gravity. You might also need to apply a smoothing algorithm to the trend of values to reduce noise.\n\n### Use the accelerometer\n\nAn acceleration sensor measures the acceleration applied to the device, including the force of gravity. The following code shows you how to get an instance of the default acceleration sensor:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n  ...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);\n```\n\n**Note:** If your app targets Android 12 (API level 31) or higher, this sensor is rate-limited.\n\nConceptually, an acceleration sensor determines the acceleration that is applied to a device (Ad) by measuring the forces that are applied to the sensor itself (Fs) using the following relationship:\n\nHowever, the force of gravity is always influencing the measured acceleration according to the following relationship:\n\nFor this reason, when the device is sitting on a table (and not accelerating), the accelerometer reads a magnitude of g = 9.81 m/s2. Similarly, when the device is in free fall and therefore rapidly accelerating toward the ground at 9.81 m/s2, its accelerometer reads a magnitude of g = 0 m/s2. Therefore, to measure the real acceleration of the device, the contribution of the force of gravity must be removed from the accelerometer data. This can be achieved by applying a high-pass filter. Conversely, a low-pass filter can be used to isolate the force of gravity. The following example shows how you can do this:\n\nKotlinJava More\n\n```\noverride fun onSensorChanged(event: SensorEvent) {\n    // In this example, alpha is calculated as t / (t + dT),\n    // where t is the low-pass filter's time-constant and\n    // dT is the event delivery rate.\n\n    val alpha: Float = 0.8f\n\n    // Isolate the force of gravity with the low-pass filter.\n    gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0]\n    gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1]\n    gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2]\n\n    // Remove the gravity contribution with the high-pass filter.\n    linear_acceleration[0] = event.values[0] - gravity[0]\n    linear_acceleration[1] = event.values[1] - gravity[1]\n    linear_acceleration[2] = event.values[2] - gravity[2]\n}\n```\n\n```\npublic void onSensorChanged(SensorEvent event){\n    // In this example, alpha is calculated as t / (t + dT),\n    // where t is the low-pass filter's time-constant and\n    // dT is the event delivery rate.\n\n    final float alpha = 0.8;\n\n    // Isolate the force of gravity with the low-pass filter.\n    gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];\n    gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];\n    gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];\n\n    // Remove the gravity contribution with the high-pass filter.\n    linear_acceleration[0] = event.values[0] - gravity[0];\n    linear_acceleration[1] = event.values[1] - gravity[1];\n    linear_acceleration[2] = event.values[2] - gravity[2];\n}\n```\n\n**Note:** You can use many different techniques to filter sensor data. The code sample above uses a simple filter constant (alpha) to create a low-pass filter. This filter constant is derived from a time constant (t), which is a rough representation of the latency that the filter adds to the sensor events, and the sensor's event delivery rate (dt). The code sample uses an alpha value of 0.8 for demonstration purposes. If you use this filtering method you may need to choose a different alpha value.\n\nAccelerometers use the standard sensor coordinate system. In practice, this means that the following conditions apply when a device is laying flat on a table in its natural orientation:\n\n- If you push the device on the left side (so it moves to the right), the x acceleration value is positive.\n- If you push the device on the bottom (so it moves away from you), the y acceleration value is positive.\n- If you push the device toward the sky with an acceleration of A m/s2, the z acceleration value is equal to A + 9.81, which corresponds to the acceleration of the device (+A m/s2) minus the force of gravity (-9.81 m/s2).\n- The stationary device will have an acceleration value of +9.81, which corresponds to the acceleration of the device (0 m/s2 minus the force of gravity, which is -9.81 m/s2).\n\nIn general, the accelerometer is a good sensor to use if you are monitoring device motion. Almost every Android-powered handset and tablet has an accelerometer, and it uses about 10 times less power than the other motion sensors. One drawback is that you might have to implement low-pass and high-pass filters to eliminate gravitational forces and reduce noise.\n\n### Use the gyroscope\n\nThe gyroscope measures the rate of rotation in rad/s around a device's x, y, and z axis. The following code shows you how to get an instance of the default gyroscope:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);\n```\n\n**Note:** If your app targets Android 12 (API level 31) or higher, this sensor is rate-limited.\n\nThe sensor's coordinate system is the same as the one used for the acceleration sensor. Rotation is positive in the counter-clockwise direction; that is, an observer looking from some positive location on the x, y or z axis at a device positioned on the origin would report positive rotation if the device appeared to be rotating counter clockwise. This is the standard mathematical definition of positive rotation and is not the same as the definition for roll that is used by the orientation sensor.\n\nUsually, the output of the gyroscope is integrated over time to calculate a rotation describing the change of angles over the timestep. For example:\n\nKotlinJava More\n\n```\n// Create a constant to convert nanoseconds to seconds.\nprivate val NS2S = 1.0f / 1000000000.0f\nprivate val deltaRotationVector = FloatArray(4) { 0f }\nprivate var timestamp: Float = 0f\n\noverride fun onSensorChanged(event: SensorEvent?) {\n    // This timestep's delta rotation to be multiplied by the current rotation\n    // after computing it from the gyro sample data.\n    if (timestamp != 0f && event != null) {\n        val dT = (event.timestamp - timestamp) * NS2S\n        // Axis of the rotation sample, not normalized yet.\n        var axisX: Float = event.values[0]\n        var axisY: Float = event.values[1]\n        var axisZ: Float = event.values[2]\n\n        // Calculate the angular speed of the sample\n        val omegaMagnitude: Float = sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)\n\n        // Normalize the rotation vector if it's big enough to get the axis\n        // (that is, EPSILON should represent your maximum allowable margin of error)\n        if (omegaMagnitude > EPSILON) {\n            axisX /= omegaMagnitude\n            axisY /= omegaMagnitude\n            axisZ /= omegaMagnitude\n        }\n\n        // Integrate around this axis with the angular speed by the timestep\n        // in order to get a delta rotation from this sample over the timestep\n        // We will convert this axis-angle representation of the delta rotation\n        // into a quaternion before turning it into the rotation matrix.\n        val thetaOverTwo: Float = omegaMagnitude * dT / 2.0f\n        val sinThetaOverTwo: Float = sin(thetaOverTwo)\n        val cosThetaOverTwo: Float = cos(thetaOverTwo)\n        deltaRotationVector[0] = sinThetaOverTwo * axisX\n        deltaRotationVector[1] = sinThetaOverTwo * axisY\n        deltaRotationVector[2] = sinThetaOverTwo * axisZ\n        deltaRotationVector[3] = cosThetaOverTwo\n    }\n    timestamp = event?.timestamp?.toFloat() ?: 0f\n    val deltaRotationMatrix = FloatArray(9) { 0f }\n    SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);\n    // User code should concatenate the delta rotation we computed with the current rotation\n    // in order to get the updated rotation.\n    // rotationCurrent = rotationCurrent * deltaRotationMatrix;\n}\n```\n\n```\n// Create a constant to convert nanoseconds to seconds.\nprivate static final float NS2S = 1.0f / 1000000000.0f;\nprivate final float[] deltaRotationVector = new float[4]();\nprivate float timestamp;\n\npublic void onSensorChanged(SensorEvent event) {\n    // This timestep's delta rotation to be multiplied by the current rotation\n    // after computing it from the gyro sample data.\n    if (timestamp != 0) {\n      final float dT = (event.timestamp - timestamp) * NS2S;\n      // Axis of the rotation sample, not normalized yet.\n      float axisX = event.values[0];\n      float axisY = event.values[1];\n      float axisZ = event.values[2];\n\n      // Calculate the angular speed of the sample\n      float omegaMagnitude = sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);\n\n      // Normalize the rotation vector if it's big enough to get the axis\n      // (that is, EPSILON should represent your maximum allowable margin of error)\n      if (omegaMagnitude > EPSILON) {\n        axisX /= omegaMagnitude;\n        axisY /= omegaMagnitude;\n        axisZ /= omegaMagnitude;\n      }\n\n      // Integrate around this axis with the angular speed by the timestep\n      // in order to get a delta rotation from this sample over the timestep\n      // We will convert this axis-angle representation of the delta rotation\n      // into a quaternion before turning it into the rotation matrix.\n      float thetaOverTwo = omegaMagnitude * dT / 2.0f;\n      float sinThetaOverTwo = sin(thetaOverTwo);\n      float cosThetaOverTwo = cos(thetaOverTwo);\n      deltaRotationVector[0] = sinThetaOverTwo * axisX;\n      deltaRotationVector[1] = sinThetaOverTwo * axisY;\n      deltaRotationVector[2] = sinThetaOverTwo * axisZ;\n      deltaRotationVector[3] = cosThetaOverTwo;\n    }\n    timestamp = event.timestamp;\n    float[] deltaRotationMatrix = new float[9];\n    SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);\n    // User code should concatenate the delta rotation we computed with the current rotation\n    // in order to get the updated rotation.\n    // rotationCurrent = rotationCurrent * deltaRotationMatrix;\n}\n```\n\nStandard gyroscopes provide raw rotational data without any filtering or correction for noise and drift (bias). In practice, gyroscope noise and drift will introduce errors that need to be compensated for. You usually determine the drift (bias) and noise by monitoring other sensors, such as the gravity sensor or accelerometer.\n\n#### Use the uncalibrated gyroscope\n\nThe uncalibrated gyroscope is similar to the gyroscope, except that no gyro-drift compensation is applied to the rate of rotation. Factory calibration and temperature compensation are still applied to the rate of rotation. The uncalibrated gyroscope is useful for post-processing and melding orientation data. In general, `gyroscope_event.values[0]` will be close to `uncalibrated_gyroscope_event.values[0] - uncalibrated_gyroscope_event.values[3]`. That is,\n\n`calibrated_x ~= uncalibrated_x - bias_estimate_x`\n\n**Note:** Uncalibrated sensors provide more raw results and may include some bias, but their measurements contain fewer jumps from corrections applied through calibration. Some applications may prefer these uncalibrated results as smoother and more reliable. For instance, if an application is attempting to conduct its own sensor fusion, introducing calibrations can actually distort results.\n\nIn addition to the rates of rotation, the uncalibrated gyroscope also provides the estimated drift around each axis. The following code shows you how to get an instance of the default uncalibrated gyroscope:\n\nKotlinJava More\n\n```\nval sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager\nval sensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED)\n```\n\n```\nprivate SensorManager sensorManager;\nprivate Sensor sensor;\n...\nsensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);\nsensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);\n```\n\n## Additional code samples\n\nThe BatchStepSensor sample further demonstrates the use of the APIs covered on this page.\n\n### You should also read\n\n- Sensors\n- Sensors Overview\n- Position Sensors\n- Environment Sensors\n\nPrevious\n\narrow\\_back About sensors\n\nNext\n\nPosition sensors arrow\\_forward\n\nWas this helpful?\n\nContent and code samples on this page are subject to the licenses described in the Content License. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.\n\nLast updated 2026-09-16 UTC.",
+    "contentLength": 28645,
+    "url": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion",
+    "metadata": {
+      "sourceUrl": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion",
+      "finalUrl": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion",
+      "title": "Motion sensors | Sensors and location | Android Developers",
+      "language": "en",
+      "canonicalUrl": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion",
+      "siteName": "Android Developers",
+      "image": "https://developer.android.com/static/images/social/android-developers.png",
+      "favicon": "https://www.gstatic.com/devrel-devsite/prod/vfdb441d2e08dbd9d3e48d8cd72b242388a87bcf7626bf5fb9df50c2bdd4a70fd/android/images/favicon.svg",
+      "openGraph": {
+        "siteName": "Android Developers",
+        "type": "website",
+        "title": "Motion sensors | Sensors and location | Android Developers",
+        "url": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion",
+        "image": "https://developer.android.com/static/images/social/android-developers.png",
+        "imageWidth": "1200",
+        "imageHeight": "675",
+        "locale": "en"
+      },
+      "twitter": {
+        "card": "summary_large_image"
+      },
+      "alternates": [
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion",
+          "hreflang": "en"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion",
+          "hreflang": "x-default"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=ar",
+          "hreflang": "ar"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=bn",
+          "hreflang": "bn"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=zh-cn",
+          "hreflang": "zh-Hans"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=zh-tw",
+          "hreflang": "zh-Hant"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=fa",
+          "hreflang": "fa"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=fr",
+          "hreflang": "fr"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=de",
+          "hreflang": "de"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=he",
+          "hreflang": "he"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=hi",
+          "hreflang": "hi"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=id",
+          "hreflang": "id"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=it",
+          "hreflang": "it"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=ja",
+          "hreflang": "ja"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=ko",
+          "hreflang": "ko"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=pl",
+          "hreflang": "pl"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=pt-br",
+          "hreflang": "pt-BR"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=ru",
+          "hreflang": "ru"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=es-419",
+          "hreflang": "es-419"
+        },
+        {
+          "href": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion?hl=th",
+          "hreflang": "th"
+        }
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Motion sensors Stay organized with collections Save and categorize content based on your preferences."
+        },
+        {
+          "level": 3,
+          "text": "Android Open Source Project sensors"
+        },
+        {
+          "level": 2,
+          "text": "Use the gravity sensor"
+        },
+        {
+          "level": 2,
+          "text": "Use the linear accelerometer"
+        },
+        {
+          "level": 2,
+          "text": "Use the rotation vector sensor"
+        },
+        {
+          "level": 2,
+          "text": "Use the significant motion sensor"
+        },
+        {
+          "level": 2,
+          "text": "Use the step counter sensor"
+        },
+        {
+          "level": 2,
+          "text": "Use the step detector sensor"
+        },
+        {
+          "level": 2,
+          "text": "Work with raw data"
+        },
+        {
+          "level": 3,
+          "text": "Use the accelerometer"
+        },
+        {
+          "level": 3,
+          "text": "Use the gyroscope"
+        },
+        {
+          "level": 4,
+          "text": "Use the uncalibrated gyroscope"
+        },
+        {
+          "level": 2,
+          "text": "Additional code samples"
+        },
+        {
+          "level": 3,
+          "text": "You should also read"
+        },
+        {
+          "level": 3,
+          "text": "More Android"
+        },
+        {
+          "level": 3,
+          "text": "Discover"
+        },
+        {
+          "level": 3,
+          "text": "Android Devices"
+        },
+        {
+          "level": 3,
+          "text": "Releases"
+        },
+        {
+          "level": 3,
+          "text": "Documentation and Downloads"
+        },
+        {
+          "level": 3,
+          "text": "Support"
+        }
+      ],
+      "additionalMeta": {
+        "google-signin-client-id": "721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com",
+        "google-signin-scope": "profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award https://www.googleapis.com/auth/devprofiles.full_control.firstparty",
+        "theme-color": "#34a853",
+        "charset": "utf-8",
+        "x-ua-compatible": "IE=Edge",
+        "viewport": "width=device-width, initial-scale=1"
+      },
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Motion sensors"
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Develop",
+              "item": "https://developer.android.com/develop"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Core areas",
+              "item": "https://developer.android.com/develop/core-areas"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Sensors and location",
+              "item": "https://developer.android.com/develop/sensors-and-location"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Motion sensors",
+              "item": "https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion"
+            }
+          ]
+        }
+      ]
+    },
+    "cache_metadata": {
+      "status": "miss",
+      "age_ms": 0
+    },
+    "finalDOMState": "loaded",
+    "request_id": "340e079c-50d4-45a0-9b5f-608096d2df2a"
+  },
+  "providerResponse": {
+    "httpStatus": 200
+  },
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "billing": {
+    "reportedCost": {
+      "currency": "USD",
+      "value": 900,
+      "unit": "MICRO_DOLLAR"
+    }
+  },
+  "resultCount": 1,
+  "billedUnits": 1,
+  "createdAt": "2026-10-01T12:46:48.706Z",
+  "completedAt": "2026-10-01T12:46:54.974Z",
+  "hints": {
+    "retrieve the response later": "monid runs get -r 01M3VR1K4PBZZYHR7D7M4TVZB1",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page"
+  }
+}

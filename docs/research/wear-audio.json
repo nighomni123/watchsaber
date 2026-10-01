@@ -1,0 +1,279 @@
+{
+  "runId": "01M3VR1VAKE9X3F410AYNG3BTK",
+  "provider": "context.dev",
+  "endpoint": "/web/scrape/markdown",
+  "status": "COMPLETED",
+  "output": {
+    "success": true,
+    "markdown": "# Play audio on wearables Stay organized with collections Save and categorize content based on your preferences.\n\n- On this page\n- Detect audio devices\n- Choose preferred device for audio output\n - Let user choose media output device\n - Bluetooth headset\n - Built-in speakers\n- Play audio\n - Prevent unintended media playback through built-in speakers\n\nThis guide describes how you can use familiar Android APIs to play audio on Wear OS apps.\n\n## Detect audio devices\n\nA Wear OS app must first detect if the wearable device has an appropriate audio output. Wearable devices typically have at least one of the following audio outputs:\n\n- **`AudioDeviceInfo.TYPE_BUILTIN_SPEAKER`**: on devices with a built-in speaker.\n- **`AudioDeviceInfo.TYPE_BLUETOOTH_A2DP`**: when a Bluetooth headset is paired and connected.\n- **`AudioDeviceInfo.TYPE_BLE_BROADCAST`**: when a Bluetooth Low Energy (BLE) broadcast group device is paired and connected.\n- **`AudioDeviceInfo.TYPE_BLE_HEADSET`**: when a BLE headset is paired and connected.\n- **`AudioDeviceInfo.TYPE_BLE_SPEAKER`**: when a BLE speaker is paired and connected.\n\nThe following example uses the `getDevices()` method with the `FEATURE_AUDIO_OUTPUT` value to check if an audio output type is available.\n\n```\nprivate val audioManager: AudioManager by lazy {\n    getSystemService(AUDIO_SERVICE) as AudioManager\n}\n\nfun audioOutputAvailable(type: Int): Boolean {\n    if (!packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT)) {\n        return false\n    }\n    return audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { it.type == type }\n}AudioActivity.kt\n```\n\nYou can then use this method to check if an audio output type is available.\n\n```\nval hasSpeaker = audioOutputAvailable(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)\nval hasBluetoothHeadset = audioOutputAvailable(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)\nval hasBLEBroadcast = audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_BROADCAST)\nval hasBLEHeadset = audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_HEADSET)\nval hasBLESpeaker = audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_SPEAKER)AudioActivity.kt\n```\n\nTo provide the best user experience, only play media when Bluetooth headphones or speakers are connected to the watch.\n\n## Choose preferred device for audio output\n\nDepending on your app's use case and the importance of audio to its core experience, choose how users engage with your app's audio output.\n\n### Let user choose media output device\n\nStarting with Wear OS 5, the system provides a UI that lets users choose which device plays media and shows information about the playing media content.\n\nIf your app detects that there isn't a Bluetooth headset connected when you want to provide audio playback on devices running Wear OS 5 or higher, offer to take the user directly to the media output switcher. On devices that don't support the media output switcher, invoke the `ACTION_BLUETOOTH_SETTINGS` intent action, which takes the user to the Bluetooth page in system settings.\n\nThe `launchOutputSelection()` method, part of the Horologist library on GitHub, demonstrates how to let users choose their media output device.\n\n### Bluetooth headset\n\nUnlike built-in speakers, which are always available if present on the device, a Bluetooth headset can be paired or unpaired while an app runs. If your app requires a headset to continue, register a callback to detect when the user connects and disconnects a Bluetooth headset using `registerAudioDeviceCallback`:\n\n```\nval audioDeviceCallback =\n    object : AudioDeviceCallback() {\n        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {\n            super.onAudioDevicesAdded(addedDevices)\n            if (audioOutputAvailable(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP) ||\n                audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_BROADCAST) ||\n                audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_HEADSET) ||\n                audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_SPEAKER)\n            ) {\n                // A Bluetooth or BLE device is connected and available for playback.\n            }\n        }\n        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {\n            super.onAudioDevicesRemoved(removedDevices)\n            if (!(audioOutputAvailable(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)) &&\n                !(audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_BROADCAST)) &&\n                !(audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_HEADSET)) &&\n                !(audioOutputAvailable(AudioDeviceInfo.TYPE_BLE_SPEAKER))\n            ) {\n                // No Bluetooth or BLE devices are connected anymore.\n            }\n        }\n    }\n\naudioManager.registerAudioDeviceCallback(audioDeviceCallback, /*handler=*/ null)AudioActivity.kt\n```\n\nIf your app detects that there isn't a Bluetooth headset connected when you want to provide audio output, don't show an error message. Instead, offer to take the user directly to Bluetooth settings to make it easier for them to connect. You can do this by sending an intent with `ACTION_BLUETOOTH_SETTINGS`:\n\n```\nfun Context.launchBluetoothSettings(closeOnConnect: Boolean = true) {\n    val intent = with(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) {\n        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)\n        putExtra(\"EXTRA_CONNECTION_ONLY\", true)\n        if (closeOnConnect) {\n            putExtra(\"EXTRA_CLOSE_ON_CONNECT\", true)\n        }\n        putExtra(\"android.bluetooth.devicepicker.extra.FILTER_TYPE\", FILTER_TYPE_AUDIO)\n    }\n    startActivity(intent)\n}\n\ninternal const val FILTER_TYPE_AUDIO = 1BluetoothSettings.kt\n```\n\n### Built-in speakers\n\nMost Wear OS devices have built-in speakers. If your app offers a non-media use case that uses sound, consider using speakers to offer an extra dimension of engagement. For example, a speaker-equipped Wear OS device might trigger a clock or timer alarm with an audio notification, and fitness apps might use the speaker to provide exercise instructions.\n\nSee the WearSpeakerSample for details.\n\n## Play audio\n\nAfter you detect and choose a suitable audio output, playing audio on Wear OS is the same as on mobile or other devices. For more information, see MediaPlayer overview. For easier access to advanced features, for example, streaming and downloading media, use ExoPlayer. Follow best practices for audio apps, for example, managing audio focus.\n\n### Prevent unintended media playback through built-in speakers\n\nMedia apps can follow this guidance to prevent the app from unintentionally playing media on built-in watch speakers. The guidance varies depending on the player your app uses.\n\n#### ExoPlayer\n\nIf your app uses ExoPlayer:\n\n1. Call `setSuppressPlaybackOnUnsuitableOutput(true)` method while building the ExoPlayer instance:\n\n```\nval exoPlayer = ExoPlayer.Builder(context)\n    .setAudioAttributes(AudioAttributes.DEFAULT, true)\n    .setSuppressPlaybackOnUnsuitableOutput(true)\n    .build()AudioActivity.kt\n```\n\n1. React to the playback suppression event by registering `WearUnsuitableOutputPlaybackSuppressionResolverListener` listener as a listener of the ExoPlayer instance:\n\n```\nexoPlayer.addListener(WearUnsuitableOutputPlaybackSuppressionResolverListener(context))AudioActivity.kt\n```\n\n#### Horologist Media toolkit\n\nThe Horologist MediaToolkit already contains logic to prevent unintended media playback on built-in watch speakers.\n\n#### Other media players\n\n- Ensure that media audio playback starts only when a suitable output device, for example, a headset or external speakers, is connected to the watch. The following list shows suitable output devices for media apps:\n - `AudioDeviceInfo.TYPE_BLUETOOTH_A2DP`\n - `AudioDeviceInfo.TYPE_BLE_BROADCAST`\n - `AudioDeviceInfo.TYPE_BLE_HEADSET`\n - `AudioDeviceInfo.TYPE_BLE_SPEAKER`\n- If the `AudioManager` notifies your app that an external audio output device disconnects from the watch, pause playback.\n- When the user attempts to initiate media playback but hasn't connected an external audio device, prompt them to connect a device to their watch.\n\nWas this helpful?\n\nContent and code samples on this page are subject to the licenses described in the Content License. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.\n\nLast updated 2026-09-22 UTC.",
+    "contentLength": 8341,
+    "url": "https://developer.android.com/training/wearables/apps/audio",
+    "metadata": {
+      "sourceUrl": "https://developer.android.com/training/wearables/apps/audio",
+      "finalUrl": "https://developer.android.com/training/wearables/apps/audio",
+      "title": "Play audio on wearables | Wear OS | Android Developers",
+      "description": "Learn how to play audio on Wear OS apps, including detecting available audio devices, choosing the preferred output, and handling media playback to ensure a good user experience.",
+      "language": "en",
+      "keywords": [
+        "Wear OS",
+        "audio",
+        "audio playback",
+        "Bluetooth",
+        "speakers",
+        "audio devices",
+        "ExoPlayer",
+        "AudioManager"
+      ],
+      "canonicalUrl": "https://developer.android.com/training/wearables/apps/audio",
+      "siteName": "Android Developers",
+      "image": "https://developer.android.com/static/images/social/android-developers.png",
+      "favicon": "https://www.gstatic.com/devrel-devsite/prod/vfdb441d2e08dbd9d3e48d8cd72b242388a87bcf7626bf5fb9df50c2bdd4a70fd/android/images/favicon.svg",
+      "openGraph": {
+        "siteName": "Android Developers",
+        "type": "website",
+        "title": "Play audio on wearables | Wear OS | Android Developers",
+        "description": "Learn how to play audio on Wear OS apps, including detecting available audio devices, choosing the preferred output, and handling media playback to ensure a good user experience.",
+        "url": "https://developer.android.com/training/wearables/apps/audio",
+        "image": "https://developer.android.com/static/images/social/android-developers.png",
+        "imageWidth": "1200",
+        "imageHeight": "675",
+        "locale": "en"
+      },
+      "twitter": {
+        "card": "summary_large_image"
+      },
+      "alternates": [
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio",
+          "hreflang": "en"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio",
+          "hreflang": "x-default"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=ar",
+          "hreflang": "ar"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=bn",
+          "hreflang": "bn"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=zh-cn",
+          "hreflang": "zh-Hans"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=zh-tw",
+          "hreflang": "zh-Hant"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=fa",
+          "hreflang": "fa"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=fr",
+          "hreflang": "fr"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=de",
+          "hreflang": "de"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=he",
+          "hreflang": "he"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=hi",
+          "hreflang": "hi"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=id",
+          "hreflang": "id"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=it",
+          "hreflang": "it"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=ja",
+          "hreflang": "ja"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=ko",
+          "hreflang": "ko"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=pl",
+          "hreflang": "pl"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=pt-br",
+          "hreflang": "pt-BR"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=ru",
+          "hreflang": "ru"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=es-419",
+          "hreflang": "es-419"
+        },
+        {
+          "href": "https://developer.android.com/training/wearables/apps/audio?hl=th",
+          "hreflang": "th"
+        }
+      ],
+      "headings": [
+        {
+          "level": 1,
+          "text": "Play audio on wearables Stay organized with collections Save and categorize content based on your preferences."
+        },
+        {
+          "level": 2,
+          "text": "Detect audio devices"
+        },
+        {
+          "level": 2,
+          "text": "Choose preferred device for audio output"
+        },
+        {
+          "level": 3,
+          "text": "Let user choose media output device"
+        },
+        {
+          "level": 3,
+          "text": "Bluetooth headset"
+        },
+        {
+          "level": 3,
+          "text": "Built-in speakers"
+        },
+        {
+          "level": 2,
+          "text": "Play audio"
+        },
+        {
+          "level": 3,
+          "text": "Prevent unintended media playback through built-in speakers"
+        },
+        {
+          "level": 4,
+          "text": "ExoPlayer"
+        },
+        {
+          "level": 4,
+          "text": "Horologist Media toolkit"
+        },
+        {
+          "level": 4,
+          "text": "Other media players"
+        },
+        {
+          "level": 3,
+          "text": "More Android"
+        },
+        {
+          "level": 3,
+          "text": "Discover"
+        },
+        {
+          "level": 3,
+          "text": "Android Devices"
+        },
+        {
+          "level": 3,
+          "text": "Releases"
+        },
+        {
+          "level": 3,
+          "text": "Documentation and Downloads"
+        },
+        {
+          "level": 3,
+          "text": "Support"
+        }
+      ],
+      "additionalMeta": {
+        "google-signin-client-id": "721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com",
+        "google-signin-scope": "profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award https://www.googleapis.com/auth/devprofiles.full_control.firstparty",
+        "theme-color": "#34a853",
+        "charset": "utf-8",
+        "x-ua-compatible": "IE=Edge",
+        "viewport": "width=device-width, initial-scale=1"
+      },
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Play audio on wearables"
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Develop",
+              "item": "https://developer.android.com/develop"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Devices",
+              "item": "https://developer.android.com/develop/devices"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Wear OS",
+              "item": "https://developer.android.com/training/wearables"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Play audio on wearables",
+              "item": "https://developer.android.com/training/wearables/apps/audio"
+            }
+          ]
+        }
+      ]
+    },
+    "cache_metadata": {
+      "status": "miss",
+      "age_ms": 0
+    },
+    "finalDOMState": "loaded",
+    "request_id": "ad5f78d4-1f22-4f4e-9f2a-a11f4648de5c"
+  },
+  "providerResponse": {
+    "httpStatus": 200
+  },
+  "price": {
+    "type": "PER_CALL",
+    "amount": {
+      "value": 0.0009,
+      "currency": "USD"
+    },
+    "notes": [
+      "1 Context.dev credit per successfully scraped page — JavaScript rendering, anti-bot bypass, and premium proxies included. Failed or blocked requests are not billed."
+    ]
+  },
+  "billing": {
+    "reportedCost": {
+      "currency": "USD",
+      "value": 900,
+      "unit": "MICRO_DOLLAR"
+    }
+  },
+  "resultCount": 1,
+  "billedUnits": 1,
+  "createdAt": "2026-10-01T12:46:57.094Z",
+  "completedAt": "2026-10-01T12:47:01.980Z",
+  "hints": {
+    "retrieve the response later": "monid runs get -r 01M3VR1VAKE9X3F410AYNG3BTK",
+    "list a site's URLs before scraping them": "monid run -p context.dev -e /web/scrape/sitemap -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # sitemap enumerates the URLs to feed back into this endpoint",
+    "scrape every page of a site, not just one": "monid run -p context.dev -e /web/crawl -i '<BODY>' --query '<QUERY_PARAMS>' --path '<PATH_PARAMS>'  # crawl follows links and returns one Markdown document per page"
+  }
+}

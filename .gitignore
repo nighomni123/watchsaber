@@ -1,0 +1,33 @@
+# Secrets / machine-local config — NEVER commit
+# .monid/ holds the monid config *and* credentials.yaml (a real API key).
+.monid/
+local.properties
+keystore/
+
+# Gradle / Android build output
+# .gradle-home is the vendored GRADLE_USER_HOME (the sandbox denies writes to ~/.gradle).
+# It is ~3 GB of downloaded distributions and artifacts, and every machine re-resolves it.
+.gradle/
+.gradle-home/
+build/
+*.apk
+*.aab
+captures/
+.cxx/
+
+# Symlink into another checkout; not part of this project's source
+.tools/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Rendered evidence is regenerable from tools/*.py and the replay pipeline
+build/screens/
+
+# Kotlin compiler scratch
+.kotlin/
+
+# Packaged audio is generated from engine/assets at build time; engine/assets is canonical.
+app/src/main/assets/audio/
